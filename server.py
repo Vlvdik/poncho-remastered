@@ -25,8 +25,8 @@ for event in longpoll.listen():
         print('Chat_id: [' + str(chat) + ']\nUser_id: [' + str(user_id) + ']\nMessage: [' + msg + ']')
 
         if msg == '/гороскоп':
-                write_msg(chat, 'Укажите знак зодиака 👺')
-                continue
+            write_msg(chat, 'Укажите знак зодиака 👺')
+            continue
         if words[0] == '/гороскоп':
             if words[1].lower() in zz:
                 write_msg(chat, methods.parse_horo(words[1].lower()))

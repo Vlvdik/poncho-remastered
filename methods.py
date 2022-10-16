@@ -1,4 +1,8 @@
-def parse(msg):
+from bs4 import BeautifulSoup
+import requests
+from config import *
+
+def parse_horo(msg):
     URL = zz[msg]
 
     HEADERS = {

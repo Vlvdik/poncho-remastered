@@ -11,9 +11,6 @@ longpoll = VkBotLongPoll(authorize, group_id)
 def write_msg(sender, message):
     authorize.method('messages.send', {'chat_id': sender, 'message': message, "random_id": 0})
 
-def send_picture(sender):
-    authorize.method('messages.send', {'chat_id': sender, 'attachment': 'photo-201338515_457239018', 'random_id': 0})
-
 ### Основная логика тут, в том числе обработка ивентов
 
 for event in longpoll.listen():
@@ -28,10 +25,10 @@ for event in longpoll.listen():
         print('Chat_id: [' + str(chat) + ']\nUser_id: [' + str(user_id) + ']\nMessage: [' + msg + ']')
 
         if msg == '/гороскоп':
-                write_msg(event.chat_id, 'Укажите знак зодиака 👺')
+                write_msg(chat, 'Укажите знак зодиака 👺')
                 continue
         if words[0] == '/гороскоп':
             if words[1].lower() in zz:
-                write_msg(event.chat_id, methods.parse_horo(words[1].lower()))
+                write_msg(chat, methods.parse_horo(words[1].lower()))
             else:
-                write_msg(event.chat_id, 'Моими лапами невозможно найти подобный знак зодиака 😿') 
+                write_msg(chat, 'Моими лапами невозможно найти подобный знак зодиака 😿') 

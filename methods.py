@@ -58,7 +58,3 @@ def parse_schedule(course, group):
     os.remove(filename)
 
     return result + '\n' + schedule_link + '_word_blank?' + result
-
-
-
-# print(parse_schedule("3", "ПМИ-РКС-20"))

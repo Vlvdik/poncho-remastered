@@ -40,21 +40,44 @@ def parse_schedule(course, group):
     if items == None:
         return 'Группа не найдена/не существует 😢'
     else:
-        result = items.find_next('a').get('href')[22:]
+        url_id = items.find_next('a').get('href')[22:]
 
     ###Тянем само расписание 
     
     filename = 'Schedule_' + group.upper() + '.docx'
-    urllib.request.urlretrieve(schedule_link + '_word_blank?' + result, filename)
+    urllib.request.urlretrieve(schedule_link + '_word_blank?' + url_id, filename)
     doc = docx.Document(filename)
     table = doc.tables[0]
     result = ''
+    last_string = ''
     for row in table.rows:
         string = ''
         for cell in row.cells:
-            string += cell.text + ' '
+            if cell.text.lower() == 'пара':
+                break
+            elif ' ' + cell.text == string:
+                break
+            elif cell.text.isnumeric():
+                string = cell.text + ')'
+                continue
+            string += ' ' + cell.text
+        
+        if string.lower()[1:] in day_of_weeks:
+            try:
+                string += '✅'
+                if string[1:-1].lower() == "воскресенье":
+                    string = string[:-1]
+                    string += '❌'
+
+                if last_string[1:-1].lower() in day_of_weeks:
+                    result = result[:-1]
+                    result += '❌'
+            except:
+                continue
+        if string != '':
+            last_string = string
         result += '\n' + string
     
     os.remove(filename)
 
-    return result + '\n' + schedule_link + '_word_blank?' + result
+    return result + '\n\nСсылка на файл с расписанием: ' + schedule_link + '_word_blank?' + url_id

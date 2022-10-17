@@ -1,3 +1,4 @@
+import re
 import vk_api
 import methods
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
@@ -27,8 +28,18 @@ for event in longpoll.listen():
         if msg == '/гороскоп':
             write_msg(chat, 'Укажите знак зодиака 👺')
             continue
-        if words[0] == '/гороскоп':
+        if words[0].lower() == '/гороскоп':
             if words[1].lower() in zz:
                 write_msg(chat, methods.parse_horo(words[1].lower()))
             else:
                 write_msg(chat, 'Моими лапами невозможно найти подобный знак зодиака 😿') 
+        
+        if words[0].lower() == '/расписание':
+            if msg == words[0]:
+                write_msg(chat, 'Укажите КУРС и ГРУППУ!')
+                continue
+            elif int(words[1]) > 5:    
+                write_msg(chat, 'Чел, мы конечно всю жизнь учимся, но не в унике')
+                continue
+            elif re.search('/расписание \d \w+', msg.lower()):
+                write_msg(chat, methods.parse_schedule(words[1], words[2]))

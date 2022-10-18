@@ -41,6 +41,7 @@ def parse_schedule(course, group):
     table = doc.tables[0]
     result = ''
     last_string = ''
+
     for row in table.rows:
         string = ''
         for cell in row.cells:
@@ -65,8 +66,10 @@ def parse_schedule(course, group):
                     result += '❌'
             except:
                 continue
+
         if string != '':
             last_string = string
+        
         result += '\n' + string
     
     os.remove(filename)

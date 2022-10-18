@@ -5,12 +5,8 @@ import urllib.request
 from bs4 import BeautifulSoup
 from config import *
 
-def parse_horo(msg):
-    URL = zz[msg]
-
-    HEADERS = {
-        'User_agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
-    }
+def parse_horoscope(msg):
+    URL = zodiac_signs[msg]
 
     response = requests.get(URL, headers=HEADERS)
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -20,17 +16,12 @@ def parse_horo(msg):
     for item in items:
         comps.append({
             'data': item.findAll('p')
-
         })
 
     result = "Гороскоп на сегодня: " + msg + "\n\n" + comps[0]['data'][0].get_text(strip=True) + "\n" + comps[0]['data'][1].get_text(strip=True)
     return result
 
 def parse_schedule(course, group):
-    
-    HEADERS = {
-        'User_agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36'
-    }
 
     ###Тянем ссылку на расписание группы
     response = requests.get(schedule_link + "_groups?i=0&f=0&k=" + course, headers=HEADERS)

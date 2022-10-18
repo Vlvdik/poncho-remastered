@@ -22,6 +22,12 @@ def parse_horoscope(msg):
     return result
 
 def parse_schedule(course, group):
+    
+    try:
+        if int(course) not in range(1,8):
+            return "Курс не найден/не соответствует реальности(грустный смайлик кота)"
+    except:
+        return "Курс это не буквы(смайлик ауф)"
 
     ###Тянем ссылку на расписание группы
     response = requests.get(schedule_link + "_groups?i=0&f=0&k=" + course, headers=HEADERS)

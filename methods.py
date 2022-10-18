@@ -80,4 +80,4 @@ def parse_schedule(course, group):
     
     os.remove(filename)
 
-    return result + '\n\nСсылка на файл с расписанием: ' + schedule_link + '_word_blank?' + url_id
+    return result + '\n\n💾Ссылка на файл с расписанием: ' + schedule_link + '_word_blank?' + url_id

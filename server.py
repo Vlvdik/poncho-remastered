@@ -41,9 +41,9 @@ async def event_handle(event):
                 await write_msg(chat, 'Моими лапами невозможно найти подобный знак зодиака 😿') 
     
         if words[0] == '/расписание':
-            if msg == words[0] or len(words) == 2 or re.search('/расписание \w+ \w+', msg):
+            if msg == words[0] or len(words) == 2:
                 await write_msg(chat, 'Укажите КУРС и ГРУППУ!')
-            elif re.search('/расписание \d \w+', msg):
+            else:
                 await write_msg(chat, methods.parse_schedule(words[1], words[2]))
 
 asyncio.run(main())

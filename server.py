@@ -24,7 +24,7 @@ async def main():
 async def event_handle(event):    
     if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and event.message.get('text') != "":
         
-        msg = event.message.get('text')
+        msg = event.message.get('text').lower()
         words = event.message.get('text').lower().split()
         chat = event.chat_id
         user_id = event.message.get('from_id')
@@ -34,20 +34,16 @@ async def event_handle(event):
 
         if msg == '/гороскоп':
             await write_msg(chat, 'Укажите знак зодиака 👺')
-            return
-
-        if words[0].lower() == '/гороскоп':
-            if words[1].lower() in zz:
-                await write_msg(chat, methods.parse_horo(words[1].lower()))
+        elif words[0] == '/гороскоп':
+            if words[1] in zodiac_signs:
+                await write_msg(chat, methods.parse_horoscope(words[1]))
             else:
                 await write_msg(chat, 'Моими лапами невозможно найти подобный знак зодиака 😿') 
     
-        if words[0].lower() == '/расписание':
-            if msg == words[0] or len(words) == 2:
+        if words[0] == '/расписание':
+            if msg == words[0] or len(words) == 2 or re.search('/расписание \w+ \w+', msg):
                 await write_msg(chat, 'Укажите КУРС и ГРУППУ!')
-                return
-
-            elif re.search('/расписание \d \w+', msg.lower()):
+            elif re.search('/расписание \d \w+', msg):
                 await write_msg(chat, methods.parse_schedule(words[1], words[2]))
 
 asyncio.run(main())

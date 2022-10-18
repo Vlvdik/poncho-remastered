@@ -1,3 +1,4 @@
+import asyncio
 import re
 import vk_api
 import methods
@@ -8,13 +9,19 @@ authorize = vk_api.VkApi(token = main_token)
 longpoll = VkBotLongPoll(authorize, group_id)
 
 ### Методы для общения с ВК
+async def write_msg(sender, message):
+    authorize.method('messages.send', {'chat_id': sender, 'message': message, 'random_id': 0})
 
-def write_msg(sender, message):
-    authorize.method('messages.send', {'chat_id': sender, 'message': message, "random_id": 0})
+### Вхождение в луп
+async def main():
+    for event in longpoll.listen():
+        try:
+            await event_handle(event)
+        except:
+            print("Error_log: [Handle error]")
 
 ### Основная логика тут, в том числе обработка ивентов
-
-for event in longpoll.listen():
+async def event_handle(event):    
     if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and event.message.get('text') != "":
         
         msg = event.message.get('text')
@@ -26,17 +33,21 @@ for event in longpoll.listen():
         print('Chat_id: [' + str(chat) + ']\nUser_id: [' + str(user_id) + ']\nMessage: [' + msg + ']')
 
         if msg == '/гороскоп':
-            write_msg(chat, 'Укажите знак зодиака 👺')
-            continue
+            await write_msg(chat, 'Укажите знак зодиака 👺')
+            return
+
         if words[0].lower() == '/гороскоп':
             if words[1].lower() in zz:
-                write_msg(chat, methods.parse_horo(words[1].lower()))
+                await write_msg(chat, methods.parse_horo(words[1].lower()))
             else:
-                write_msg(chat, 'Моими лапами невозможно найти подобный знак зодиака 😿') 
-        
+                await write_msg(chat, 'Моими лапами невозможно найти подобный знак зодиака 😿') 
+    
         if words[0].lower() == '/расписание':
             if msg == words[0] or len(words) == 2:
-                write_msg(chat, 'Укажите КУРС и ГРУППУ!')
-                continue
+                await write_msg(chat, 'Укажите КУРС и ГРУППУ!')
+                return
+
             elif re.search('/расписание \d \w+', msg.lower()):
-                write_msg(chat, methods.parse_schedule(words[1], words[2]))
+                await write_msg(chat, methods.parse_schedule(words[1], words[2]))
+
+asyncio.run(main())

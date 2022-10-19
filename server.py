@@ -8,6 +8,7 @@ authorize = vk_api.VkApi(token = main_token)
 upload = vk_api.VkUpload(authorize)
 longpoll = VkBotLongPoll(authorize, group_id)
 log = methods.event_logs
+
 ### Методы для общения с ВК
 async def write_msg(sender, message):
     authorize.method('messages.send', {'chat_id': sender, 'message': message, 'random_id': 0})
@@ -21,7 +22,7 @@ async def main():
         try:
             await event_handle(event)
         except:
-            methods.event_logs('Server_error', '5XX')
+            methods.event_logs('Server_error', 'error in program logic')
 
 ### Основная логика тут, в том числе обработка ивентов
 async def event_handle(event):
@@ -41,7 +42,7 @@ async def event_handle(event):
                 await write_msg(chat, 'Укажите знак зодиака 👺')
             elif words[0] == '/гороскоп':
                 if words[1] in zodiac_signs:
-                    photo = upload.photo_messages('uploads/Кот_' + words[1] + '.png')
+                    photo = upload.photo_messages('Ваш путь к файлу')
                     attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
                     await send_picture(chat, methods.parse_horoscope(words[1]), attachment)
                 else:

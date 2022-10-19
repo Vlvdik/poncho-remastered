@@ -14,7 +14,7 @@ async def write_msg(sender, message):
 
 async def send_picture(sender, message, attachment):
     authorize.method('messages.send', {'chat_id': sender, 'message': message, 'attachment': attachment, 'random_id': 0})
-    
+
 ### Вхождение в луп
 async def main():
     for event in longpoll.listen():
@@ -48,6 +48,8 @@ async def event_handle(event):
         if words[0] == '/расписание':
             if msg == words[0] or len(words) == 2:
                 await write_msg(chat, 'Укажите КУРС и ГРУППУ!')
+            elif len(words) > 3:
+                await write_msg(chat, methods.parse_schedule(words[1], words[2], words[3]))
             else:
                 await write_msg(chat, methods.parse_schedule(words[1], words[2]))
 

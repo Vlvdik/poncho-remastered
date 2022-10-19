@@ -22,7 +22,7 @@ async def main():
         try:
             await event_handle(event)
         except:
-            methods.event_logs('Server_error', 'error in program logic')
+            methods.event_logs('Server_error', '5XX')
 
 ### Основная логика тут, в том числе обработка ивентов
 async def event_handle(event):
@@ -38,11 +38,14 @@ async def event_handle(event):
             
             await log('New_message', msg, user_id)
 
+            if msg == '/help':
+                await write_msg(chat, helper)
+
             if msg == '/гороскоп':
                 await write_msg(chat, 'Укажите знак зодиака 👺')
             elif words[0] == '/гороскоп':
                 if words[1] in zodiac_signs:
-                    photo = upload.photo_messages('Ваш путь к файлу')
+                    photo = upload.photo_messages('uploads/Кот_' + words[1] + '.png')
                     attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
                     await send_picture(chat, methods.parse_horoscope(words[1]), attachment)
                 else:

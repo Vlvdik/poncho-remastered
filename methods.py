@@ -21,13 +21,13 @@ def parse_horoscope(msg):
     result = "Гороскоп на сегодня: " + msg + "\n\n" + comps[0]['data'][0].get_text(strip=True) + "\n" + comps[0]['data'][1].get_text(strip=True)
     return result
 
-def parse_schedule(course, group):
+def parse_schedule(course, group, value="неделя"):
     
     try:
         if int(course) not in range(1,8):
-            return "Курс не найден/не соответствует реальности(грустный смайлик кота)"
+            return "Курс не найден/не соответствует реальности😿"
     except:
-        return "Курс это не буквы(смайлик ауф)"
+        return "Курс это не буквы☝"
 
     ###Тянем ссылку на расписание группы
     response = requests.get(schedule_link + "_groups?i=0&f=0&k=" + course, headers=HEADERS)
@@ -48,36 +48,62 @@ def parse_schedule(course, group):
     result = ''
     last_string = ''
 
-    for row in table.rows:
-        string = ''
-        for cell in row.cells:
-            if cell.text.lower() == 'пара':
-                break
-            elif ' ' + cell.text == string:
-                break
-            elif cell.text.isnumeric():
-                string = cell.text + ')'
-                continue
-            string += ' ' + cell.text
+    if value in day_of_weeks:
+        marker = False
         
-        if string.lower()[1:] in day_of_weeks:
-            try:
-                string += '✅'
-                if string[1:-1].lower() == "воскресенье":
-                    string = string[:-1]
-                    string += '❌'
+        for row in table.rows:
+            string = ''
 
-                if last_string[1:-1].lower() in day_of_weeks:
-                    result = result[:-1]
-                    result += '❌'
-            except:
+            if row.cells[0].text.lower() == value:
+                marker = True   
+            elif row.cells[0].text.lower() in day_of_weeks:
+                marker = False
+
+            for cell in row.cells:
+                if ' ' + cell.text == string:
+                    string += '✅'
+                    break
+                string += ' ' + cell.text
+
+            if marker:
+                result += '\n' + string
+            else:
                 continue
-
-        if string != '':
-            last_string = string
+   
+    else:
+        for row in table.rows:
+            string = ''
+            for cell in row.cells:
+                if cell.text.lower() == 'пара':
+                    break
+                elif ' ' + cell.text == string:
+                    break
+                elif cell.text.isnumeric():
+                    string = cell.text + ')'
+                    continue
+                string += ' ' + cell.text
         
-        result += '\n' + string
+            if string.lower()[1:] in day_of_weeks:
+                try:
+                    string += '✅'
+                    if string[1:-1].lower() == "воскресенье":
+                        string = string[:-1]
+                        string += '❌'
+
+                    if last_string[1:-1].lower() in day_of_weeks:
+                        result = result[:-1]
+                        result += '❌'
+                except:
+                    continue
+
+            if string != '':
+                last_string = string
+        
+            result += '\n' + string
     
     os.remove(filename)
 
-    return result + '\n\n💾Ссылка на файл с расписанием: ' + schedule_link + '_word_blank?' + url_id
+    if result.lower()[2:-1] == value:
+        result = result[:-1] + '❌'
+
+    return result + '\n\n💾Ссылка на файл с расписанием на неделю: ' + schedule_link + '_word_blank?' + url_id

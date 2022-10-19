@@ -1,17 +1,20 @@
 import asyncio
-import re
 import vk_api
 import methods
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from config import *
 
 authorize = vk_api.VkApi(token = main_token)
+upload = vk_api.VkUpload(authorize)
 longpoll = VkBotLongPoll(authorize, group_id)
 
 ### Методы для общения с ВК
 async def write_msg(sender, message):
     authorize.method('messages.send', {'chat_id': sender, 'message': message, 'random_id': 0})
 
+async def send_picture(sender, message, attachment):
+    authorize.method('messages.send', {'chat_id': sender, 'message': message, 'attachment': attachment, 'random_id': 0})
+    
 ### Вхождение в луп
 async def main():
     for event in longpoll.listen():
@@ -36,7 +39,12 @@ async def event_handle(event):
             await write_msg(chat, 'Укажите знак зодиака 👺')
         elif words[0] == '/гороскоп':
             if words[1] in zodiac_signs:
-                await write_msg(chat, methods.parse_horoscope(words[1]))
+                photo = upload.photo_messages('Ваш путь для файла')
+                owner_id = photo[0]['owner_id']
+                photo_id = photo[0]['id']
+                access_key = photo[0]['access_key']
+                attachment = f'photo{owner_id}_{photo_id}_{access_key}'
+                await send_picture(chat, methods.parse_horoscope(words[1]), attachment)
             else:
                 await write_msg(chat, 'Моими лапами невозможно найти подобный знак зодиака 😿') 
     

@@ -5,6 +5,12 @@ import urllib.request
 from bs4 import BeautifulSoup
 from config import *
 
+async def event_logs(name, value, user_id=''):
+    if user_id:
+        print(f'\n[{name}]: {value} \n[From_user]: {user_id}')
+    else:
+        print(f'\n[{name}]: {value}')
+
 def parse_horoscope(msg):
     URL = zodiac_sign_urls[msg]
 

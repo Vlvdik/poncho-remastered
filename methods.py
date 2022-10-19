@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from config import *
 
 def parse_horoscope(msg):
-    URL = zodiac_signs[msg]
+    URL = zodiac_sign_urls[msg]
 
     response = requests.get(URL, headers=HEADERS)
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -18,7 +18,8 @@ def parse_horoscope(msg):
             'data': item.findAll('p')
         })
 
-    result = "Гороскоп на сегодня: " + msg + "\n\n" + comps[0]['data'][0].get_text(strip=True) + "\n" + comps[0]['data'][1].get_text(strip=True)
+    string = comps[0]['data'][0].get_text(strip=True) + "\n" + comps[0]['data'][1].get_text(strip=True)
+    result = "🌟 Гороскоп на сегодня: " + msg + ' ' + zodiac_signs[msg] + "\n\n🔯" + string
     return result
 
 def parse_schedule(course, group, value="неделя"):

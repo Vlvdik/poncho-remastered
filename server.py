@@ -22,7 +22,7 @@ async def main():
         try:
             await event_handle(event)
         except:
-            methods.event_logs('Server_error', '5XX')
+            methods.event_logs('Server_error', 'breaks in the program logic')
 
 ### Основная логика тут, в том числе обработка ивентов
 async def event_handle(event):
@@ -40,6 +40,9 @@ async def event_handle(event):
 
             if msg == '/help':
                 await write_msg(chat, helper)
+
+            if msg == '/bibametr':
+                await write_msg(chat, methods.bibametr(user_id))
 
             if msg == '/гороскоп':
                 await write_msg(chat, 'Укажите знак зодиака 👺')

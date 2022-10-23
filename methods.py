@@ -13,7 +13,7 @@ async def event_logs(name, value, user_id=''):
         print(f'\n[{name}]: {value}')
 
 def bibametr(user_id):
-    res = random.randint(1,100)
+    res = random.randint(-100,100)
     smile = ''
 
     if res >= 30:
@@ -22,6 +22,9 @@ def bibametr(user_id):
         smile = '😿'
 
     return f"@id{user_id} (Чел), биба {res} см {smile}"
+
+def toxic_rank():
+    return ''
 
 def parse_horoscope(msg):   
     URL = zodiac_sign_urls[msg]

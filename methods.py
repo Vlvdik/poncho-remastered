@@ -1,4 +1,5 @@
 import os
+import random
 import requests
 import docx
 import urllib.request
@@ -11,7 +12,18 @@ async def event_logs(name, value, user_id=''):
     else:
         print(f'\n[{name}]: {value}')
 
-def parse_horoscope(msg):
+def bibametr(user_id):
+    res = random.randint(1,100)
+    smile = ''
+
+    if res >= 30:
+        smile = '🙀'
+    else:
+        smile = '😿'
+
+    return f"@id{user_id} (Чел), биба {res} см {smile}"
+
+def parse_horoscope(msg):   
     URL = zodiac_sign_urls[msg]
 
     response = requests.get(URL, headers=HEADERS)

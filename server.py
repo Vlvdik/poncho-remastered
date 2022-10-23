@@ -44,6 +44,9 @@ async def event_handle(event):
             if msg == '/bibametr':
                 await write_msg(chat, methods.bibametr(user_id))
 
+            if msg == '/быдло':
+                await write_msg(chat, methods.toxic_rank())
+
             if msg == '/гороскоп':
                 await write_msg(chat, 'Укажите знак зодиака 👺')
             elif words[0] == '/гороскоп':
@@ -66,7 +69,7 @@ async def event_handle(event):
             member_id = event.message.action.get('member_id')
 
             await log('New_user', member_id)
-            await write_msg(event.chat_id, f"@id{member_id} (Странник), привет, какими судьбами?")
+            await write_msg(event.chat_id, f"@id{member_id} (Кожанный), привет, какими судьбами?")
     
         elif event.type == VkBotEventType.MESSAGE_NEW and event.message.action.get('type') == 'chat_kick_user':
             member_id = event.message.action.get('member_id')

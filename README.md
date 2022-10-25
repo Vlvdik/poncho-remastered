@@ -7,19 +7,19 @@ The source code of this furry friend was left on the old operating system, which
 # Installation
 
 1) Clone this repository
-'''bash
+```bash
 git clone https://github.com/Vlvdik/poncho-remastered 
-'''
+```
 2) Create and configurate your config file (get API token, parse the necessary links etc)
-'''bash
+```bash
 touch config.py
-'''
+```
 or
-'''bash
+```bash
 cat config.py
-'''
+```
 3) Run your app at a point server.py
-'''bash
+```bash
 python server.py
-'''
+```
 # Done

@@ -10,11 +10,14 @@ longpoll = VkBotLongPoll(authorize, group_id)
 log = methods.event_logs
 
 ### Методы для общения с ВК
-async def write_msg(sender, message):
-    authorize.method('messages.send', {'chat_id': sender, 'message': message, 'random_id': 0})
+async def write_msg(chat_id, message):
+    authorize.method('messages.send', {'chat_id': chat_id, 'message': message, 'random_id': 0})
 
-async def send_picture(sender, message, attachment):
-    authorize.method('messages.send', {'chat_id': sender, 'message': message, 'attachment': attachment, 'random_id': 0})
+async def send_picture(chat_id, message, attachment):
+    authorize.method('messages.send', {'chat_id': chat_id, 'message': message, 'attachment': attachment, 'random_id': 0})
+
+async def kick_user(chat_id, member_id):
+    authorize.method('messages.removeChatUser', {'chat_id' : chat_id, 'user_id' : member_id})
 
 ### Вхождение в луп
 async def main():
@@ -51,7 +54,7 @@ async def event_handle(event):
                 await write_msg(chat_id, 'Укажите знак зодиака 👺')
             elif words[0] == '/гороскоп':
                 if words[1] in zodiac_signs:
-                    photo = upload.photo_messages('Ваш путь к картинке')
+                    photo = upload.photo_messages('Ваша картинка')
                     attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
                     await send_picture(chat_id, methods.parse_horoscope(words[1]), attachment)
                 else:
@@ -66,7 +69,7 @@ async def event_handle(event):
                     await write_msg(chat_id, methods.parse_schedule(words[1], words[2]))
 
             if len(words) > 1 and msg[0] != '/':
-                methods.append_to_chats_info(chat_id, user_id, msg)
+                methods.refresh_chats_info(chat_id, user_id, msg)
 
     
         elif event.type == VkBotEventType.MESSAGE_NEW and (event.message.action.get('type') == 'chat_invite_user' or event.message.action.get('type') == 'chat_invite_user_by_link'):

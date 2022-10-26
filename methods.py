@@ -14,7 +14,7 @@ async def event_logs(name, value, user_id=''):
         print(f'\n[{name}]: {value}')
 
 def get_chat_info(chat_id):
-    result = '❗РЕЙТИНГ ТОКСИЧНОСТИ В ЭТОМ ЧАТЕ❗\n'
+    result = '❗РЕЙТИНГ ТОКСИЧНОСТИ В ЭТОМ ЧАТЕ❗\n\n'
 
     for user in chats_info[chat_id]:
         score = chats_info[chat_id][user]

@@ -13,6 +13,13 @@ async def event_logs(name, value, user_id=''):
     else:
         print(f'\n[{name}]: {value}')
 
+def get_chat_info(chat_id):
+    result = ''
+    for user in chats_info[chat_id]:
+        score = chats_info[chat_id][user]['score']
+        result += f'@id{str(user)}, значение токсичности: {str(score)}\n'
+    return result
+
 def toxicity_handler(msg):
     payload = {"inputs": msg}
     response = requests.post(API_URL, headers=headers_for_model, json=payload).json()
@@ -37,6 +44,13 @@ def append_to_chats_info(chat_id, user_id, msg):
             chats_info[chat_id][user_id] = {'score' : score}
     else:
         chats_info[chat_id] = {user_id : {'score' : score}}
+
+# append_to_chats_info(1,1,'Пися попа блять')
+# append_to_chats_info(1,2,'Ты крутой')
+# append_to_chats_info(1,3,'Абоба соси нахуй')
+
+# print(get_chat_info(1))
+
 
 def bibametr(user_id):
     res = random.randint(-100,100)

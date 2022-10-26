@@ -1,3 +1,5 @@
+from distutils.command.config import config
+import json
 import os
 import random
 import requests
@@ -12,6 +14,31 @@ async def event_logs(name, value, user_id=''):
     else:
         print(f'\n[{name}]: {value}')
 
+def toxicity_handler(msg):
+    payload = {"inputs": msg}
+    response = requests.post(API_URL, headers=headers_for_model, json=payload).json()
+
+    try:
+        labels = response[0]
+        
+        if labels[0]['label'] == 'LABEL_1':
+            return labels[0]['score'] - labels[1]['score']
+        else:
+            return labels[1]['score'] - labels[0]['score']
+    except:
+        print('Нейронка грузится')
+        return 0.0
+
+def append_to_chat(chat_id, user_id, msg):
+    score = toxicity_handler(msg)
+    if chat_id in chats_info:
+        if user_id in chats_info[chat_id]:
+            chats_info[chat_id][user_id]['score'] += score
+        else:
+            chats_info[chat_id][user_id] = {'score' : score}
+    else:
+        chats_info[chat_id] = {user_id : {'score' : score}}
+
 def bibametr(user_id):
     res = random.randint(-100,100)
     smile = ''
@@ -22,9 +49,6 @@ def bibametr(user_id):
         smile = '😿'
 
     return f"@id{user_id} (Чел), биба {res} см {smile}"
-
-def toxic_rank():
-    return ''
 
 def parse_horoscope(msg):   
     URL = zodiac_sign_urls[msg]

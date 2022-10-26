@@ -14,9 +14,10 @@ async def event_logs(name, value, user_id=''):
         print(f'\n[{name}]: {value}')
 
 def get_chat_info(chat_id):
-    result = ''
+    result = '❗РЕЙТИНГ ТОКСИЧНОСТИ В ЭТОМ ЧАТЕ❗\n'
+
     for user in chats_info[chat_id]:
-        score = chats_info[chat_id][user]['score']
+        score = chats_info[chat_id][user]
         result += f'@id{str(user)}, значение токсичности: {str(score)}\n'
     return result
 
@@ -35,16 +36,17 @@ def toxicity_handler(msg):
         print('Нейронка грузится')
         return 0.0
 
-def append_to_chats_info(chat_id, user_id, msg):
+def refresh_chats_info(chat_id, user_id, msg):
     score = toxicity_handler(msg)
+
     if chat_id in chats_info:
         if user_id in chats_info[chat_id]:
-            chats_info[chat_id][user_id]['score'] += score
+            chats_info[chat_id][user_id] += score
         else:
-            chats_info[chat_id][user_id] = {'score' : score}
+            chats_info[chat_id][user_id] = score
     else:
-        chats_info[chat_id] = {user_id : {'score' : score}}
-
+        chats_info[chat_id] = {user_id : score}
+        
 def bibametr(user_id):
     res = random.randint(-100,100)
     smile = ''
@@ -70,11 +72,10 @@ def parse_horoscope(msg):
         })
 
     string = comps[0]['data'][0].get_text(strip=True) + "\n" + comps[0]['data'][1].get_text(strip=True)
-    result = "🌟 Гороскоп на сегодня: " + msg + ' ' + zodiac_signs[msg] + "\n\n🔯" + string
+    result = f"🌟 Гороскоп на сегодня: {msg} {zodiac_signs[msg]} \n\n🟠 {string}"
     return result
 
 def parse_schedule(course, group, value="неделя"):
-    
     try:
         if int(course) not in range(1,8):
             return "Курс не найден/не соответствует реальности😿"
@@ -128,6 +129,7 @@ def parse_schedule(course, group, value="неделя"):
     else:
         for row in table.rows:
             string = ''
+
             for cell in row.cells:
                 if cell.text.lower() == 'пара':
                     break
@@ -136,15 +138,16 @@ def parse_schedule(course, group, value="неделя"):
                 elif cell.text.isnumeric():
                     string = cell.text + ')'
                     continue
+
                 string += ' ' + cell.text
         
             if string.lower()[1:] in day_of_weeks:
                 try:
                     string += '✅'
+
                     if string[1:-1].lower() == "воскресенье":
                         string = string[:-1]
                         string += '❌'
-
                     if last_string[1:-1].lower() in day_of_weeks:
                         result = result[:-1]
                         result += '❌'

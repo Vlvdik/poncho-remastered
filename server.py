@@ -20,6 +20,7 @@ async def send_picture(sender, message, attachment):
 async def main():
     for event in longpoll.listen():
         try:
+            #print(event)
             await event_handle(event)
         except:
             methods.event_logs('Server_error', 'breaks in the program logic')
@@ -45,7 +46,8 @@ async def event_handle(event):
                 await write_msg(chat, methods.bibametr(user_id))
 
             if msg == '/быдло':
-                await write_msg(chat, methods.toxic_rank())
+                response = chats_info[chat]
+                await write_msg(chat, '')
 
             if msg == '/гороскоп':
                 await write_msg(chat, 'Укажите знак зодиака 👺')
@@ -64,18 +66,26 @@ async def event_handle(event):
                     await write_msg(chat, methods.parse_schedule(words[1], words[2], words[3]))
                 else:
                     await write_msg(chat, methods.parse_schedule(words[1], words[2]))
+
+            if len(words) > 1 and msg[0] != '/':
+                methods.append_to_chat(chat, user_id, msg)
+
     
         elif event.type == VkBotEventType.MESSAGE_NEW and (event.message.action.get('type') == 'chat_invite_user' or event.message.action.get('type') == 'chat_invite_user_by_link'):
             member_id = event.message.action.get('member_id')
 
             await log('New_user', member_id)
-            await write_msg(event.chat_id, f"@id{member_id} (Кожанный), привет, какими судьбами?")
+            await write_msg(event.chat_id, f"@id{member_id} (Кожанный), приветствую, какими судьбами?\nДа и вообще, расскажи о себе")
     
         elif event.type == VkBotEventType.MESSAGE_NEW and event.message.action.get('type') == 'chat_kick_user':
             member_id = event.message.action.get('member_id')
-
-            await log('Kick_user', member_id)
-            await write_msg(event.chat_id, f"@id{user_id} (Человек) отправил в далекое плавание @id{member_id} (человека)\nPress F")
+            
+            if user_id == member_id:
+                await log('Leave_user', member_id)
+                await write_msg(event.chat_id, f"@id{member_id} (Чел) не выдержал и свалил")
+            else:    
+                await log('Kick_user', member_id)
+                await write_msg(event.chat_id, f"@id{user_id} (Человек) отправил в далекое плавание @id{member_id} (человека)\nPress F")
     except:
         await methods.event_logs('Handle_error', 'undefiend event')
 

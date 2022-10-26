@@ -45,13 +45,6 @@ def append_to_chats_info(chat_id, user_id, msg):
     else:
         chats_info[chat_id] = {user_id : {'score' : score}}
 
-# append_to_chats_info(1,1,'Пися попа блять')
-# append_to_chats_info(1,2,'Ты крутой')
-# append_to_chats_info(1,3,'Абоба соси нахуй')
-
-# print(get_chat_info(1))
-
-
 def bibametr(user_id):
     res = random.randint(-100,100)
     smile = ''
@@ -122,6 +115,9 @@ def parse_schedule(course, group, value="неделя"):
                 if ' ' + cell.text == string:
                     string += '✅'
                     break
+                elif cell.text.isnumeric():
+                    string = cell.text + ')'
+                    continue
                 string += ' ' + cell.text
 
             if marker:

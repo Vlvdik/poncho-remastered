@@ -20,7 +20,6 @@ async def send_picture(sender, message, attachment):
 async def main():
     for event in longpoll.listen():
         try:
-            #print(event)
             await event_handle(event)
         except:
             methods.event_logs('Server_error', 'breaks in the program logic')
@@ -32,7 +31,7 @@ async def event_handle(event):
         ### Часто использующиеся параметры
         msg = event.message.get('text').lower()
         words = event.message.get('text').lower().split()
-        chat = event.chat_id
+        chat_id = event.chat_id
         user_id = event.message.get('from_id')    
 
         if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and event.message.get('text') != "":
@@ -40,35 +39,34 @@ async def event_handle(event):
             await log('New_message', msg, user_id)
 
             if msg == '/help':
-                await write_msg(chat, helper)
+                await write_msg(chat_id, helper)
 
             if msg == '/bibametr':
-                await write_msg(chat, methods.bibametr(user_id))
+                await write_msg(chat_id, methods.bibametr(user_id))
 
             if msg == '/быдло':
-                response = chats_info[chat]
-                await write_msg(chat, '')
+                await write_msg(chat_id, methods.get_chat_info(chat_id))
 
             if msg == '/гороскоп':
-                await write_msg(chat, 'Укажите знак зодиака 👺')
+                await write_msg(chat_id, 'Укажите знак зодиака 👺')
             elif words[0] == '/гороскоп':
                 if words[1] in zodiac_signs:
-                    photo = upload.photo_messages('Ваш путь к файлу')
+                    photo = upload.photo_messages('uploads/Кот_' + words[1] + '.jpg')
                     attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
-                    await send_picture(chat, methods.parse_horoscope(words[1]), attachment)
+                    await send_picture(chat_id, methods.parse_horoscope(words[1]), attachment)
                 else:
-                    await write_msg(chat, 'Моими лапами невозможно найти подобный знак зодиака 😿') 
+                    await write_msg(chat_id, 'Моими лапами невозможно найти подобный знак зодиака 😿') 
 
             if words[0] == '/расписание':
                 if msg == words[0] or len(words) == 2:
-                    await write_msg(chat, 'Укажите КУРС и ГРУППУ!')
+                    await write_msg(chat_id, 'Укажите КУРС и ГРУППУ!')
                 elif len(words) > 3:
-                    await write_msg(chat, methods.parse_schedule(words[1], words[2], words[3]))
+                    await write_msg(chat_id, methods.parse_schedule(words[1], words[2], words[3]))
                 else:
-                    await write_msg(chat, methods.parse_schedule(words[1], words[2]))
+                    await write_msg(chat_id, methods.parse_schedule(words[1], words[2]))
 
             if len(words) > 1 and msg[0] != '/':
-                methods.append_to_chats_info(chat, user_id, msg)
+                methods.append_to_chats_info(chat_id, user_id, msg)
 
     
         elif event.type == VkBotEventType.MESSAGE_NEW and (event.message.action.get('type') == 'chat_invite_user' or event.message.action.get('type') == 'chat_invite_user_by_link'):

@@ -29,7 +29,7 @@ def toxicity_handler(msg):
         print('Нейронка грузится')
         return 0.0
 
-def append_to_chat(chat_id, user_id, msg):
+def append_to_chats_info(chat_id, user_id, msg):
     score = toxicity_handler(msg)
     if chat_id in chats_info:
         if user_id in chats_info[chat_id]:

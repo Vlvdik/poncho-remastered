@@ -53,7 +53,7 @@ async def event_handle(event):
                 await write_msg(chat, 'Укажите знак зодиака 👺')
             elif words[0] == '/гороскоп':
                 if words[1] in zodiac_signs:
-                    photo = upload.photo_messages('uploads/Кот_' + words[1] + '.jpg')
+                    photo = upload.photo_messages('Ваш путь к файлу')
                     attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
                     await send_picture(chat, methods.parse_horoscope(words[1]), attachment)
                 else:

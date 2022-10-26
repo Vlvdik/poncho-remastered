@@ -53,7 +53,7 @@ async def event_handle(event):
                 await write_msg(chat, 'Укажите знак зодиака 👺')
             elif words[0] == '/гороскоп':
                 if words[1] in zodiac_signs:
-                    photo = upload.photo_messages('Ваш путь к файлу')
+                    photo = upload.photo_messages('uploads/Кот_' + words[1] + '.jpg')
                     attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
                     await send_picture(chat, methods.parse_horoscope(words[1]), attachment)
                 else:
@@ -68,7 +68,7 @@ async def event_handle(event):
                     await write_msg(chat, methods.parse_schedule(words[1], words[2]))
 
             if len(words) > 1 and msg[0] != '/':
-                methods.append_to_chat(chat, user_id, msg)
+                methods.append_to_chats_info(chat, user_id, msg)
 
     
         elif event.type == VkBotEventType.MESSAGE_NEW and (event.message.action.get('type') == 'chat_invite_user' or event.message.action.get('type') == 'chat_invite_user_by_link'):

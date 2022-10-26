@@ -50,11 +50,21 @@ async def event_handle(event):
             if msg == '/быдло':
                 await write_msg(chat_id, methods.get_chat_info(chat_id))
 
+            if msg == '/рулетка':
+                try:
+                    if methods.shoot():
+                        await write_msg(chat_id, 'ВСЕ ХОРОШО👍')
+                    else:
+                        await write_msg(chat_id, 'АХАХАХАХАХА, КЛАССИК🔫')
+                        await kick_user(chat_id, user_id)
+                except:
+                    await write_msg(chat_id, f'@id{user_id} (Админ), это шутка, я никогда бы не выстрелил в кормильца :3')
+
             if msg == '/гороскоп':
                 await write_msg(chat_id, 'Укажите знак зодиака 👺')
             elif words[0] == '/гороскоп':
                 if words[1] in zodiac_signs:
-                    photo = upload.photo_messages('Ваша картинка')
+                    photo = upload.photo_messages('Ваш путь к картинке')
                     attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
                     await send_picture(chat_id, methods.parse_horoscope(words[1]), attachment)
                 else:

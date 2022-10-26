@@ -13,6 +13,9 @@ async def event_logs(name, value, user_id=''):
     else:
         print(f'\n[{name}]: {value}')
 
+def shoot():
+    return random.randint(0,5)
+
 def get_chat_info(chat_id):
     result = '❗РЕЙТИНГ ТОКСИЧНОСТИ В ЭТОМ ЧАТЕ❗\n\n'
 

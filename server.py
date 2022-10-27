@@ -23,6 +23,7 @@ async def kick_user(chat_id, member_id):
 async def main():
     for event in longpoll.listen():
         try:
+            print(event)
             await event_handle(event)
         except:
             methods.event_logs('Server_error', 'breaks in the program logic')
@@ -47,7 +48,7 @@ async def event_handle(event):
             if msg == '/bibametr':
                 await write_msg(chat_id, methods.bibametr(user_id))
 
-            if msg == '/быдло':
+            if msg == '/быдло' and chats_info:
                 await write_msg(chat_id, methods.get_chat_info(chat_id))
 
             if msg == '/рулетка':
@@ -64,7 +65,7 @@ async def event_handle(event):
                 await write_msg(chat_id, 'Укажите знак зодиака 👺')
             elif words[0] == '/гороскоп':
                 if words[1] in zodiac_signs:
-                    photo = upload.photo_messages('Ваш путь к картинке')
+                    photo = upload.photo_messages('uploads/Кот_' + words[1] + '.jpg')
                     attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
                     await send_picture(chat_id, methods.parse_horoscope(words[1]), attachment)
                 else:
@@ -84,19 +85,22 @@ async def event_handle(event):
     
         elif event.type == VkBotEventType.MESSAGE_NEW and (event.message.action.get('type') == 'chat_invite_user' or event.message.action.get('type') == 'chat_invite_user_by_link'):
             member_id = event.message.action.get('member_id')
-
-            await log('New_user', member_id)
-            await write_msg(event.chat_id, f"@id{member_id} (Кожанный), приветствую, какими судьбами?\nДа и вообще, расскажи о себе")
+            if member_id == bot_id:
+                await log('New_chat', chat_id)
+                await write_msg(chat_id, f"Приветствую кожанные\nЯ Пончо, буду вашим помошником. Но для этого, дайте мне права админа :3")
+            else:
+                await log('New_user', member_id)
+                await write_msg(chat_id, f"@id{member_id} (Кожанный), приветствую, какими судьбами?\nДа и вообще, расскажи о себе")
     
         elif event.type == VkBotEventType.MESSAGE_NEW and event.message.action.get('type') == 'chat_kick_user':
             member_id = event.message.action.get('member_id')
             
             if user_id == member_id:
                 await log('Leave_user', member_id)
-                await write_msg(event.chat_id, f"@id{member_id} (Чел) не выдержал и свалил")
+                await write_msg(chat_id, f"@id{member_id} (Чел) не выдержал и свалил")
             else:    
                 await log('Kick_user', member_id)
-                await write_msg(event.chat_id, f"@id{user_id} (Человек) отправил в далекое плавание @id{member_id} (человека)\nPress F")
+                await write_msg(chat_id, f"@id{user_id} (Человек) отправил в далекое плавание @id{member_id} (человека)\nPress F")
     except:
         await methods.event_logs('Handle_error', 'undefiend event')
 

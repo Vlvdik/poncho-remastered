@@ -23,7 +23,7 @@ async def kick_user(chat_id, member_id):
 async def main():
     for event in longpoll.listen():
         try:
-            print(event)
+            # print(event)
             await event_handle(event)
         except:
             methods.event_logs('Server_error', 'breaks in the program logic')
@@ -51,6 +51,12 @@ async def event_handle(event):
             if msg == '/быдло' and chats_info:
                 await write_msg(chat_id, methods.get_chat_info(chat_id))
 
+            if words[0] == '/лимит':
+                if len(words) > 1:
+                    await write_msg(chat_id, methods.set_chat_limit(chat_id, words[1]))
+                else:
+                    await write_msg(chat_id, 'Укажите значение лимита')
+
             if msg == '/рулетка':
                 try:
                     if methods.shoot():
@@ -65,7 +71,7 @@ async def event_handle(event):
                 await write_msg(chat_id, 'Укажите знак зодиака 👺')
             elif words[0] == '/гороскоп':
                 if words[1] in zodiac_signs:
-                    photo = upload.photo_messages('Ваш путь к картинОчке')
+                    photo = upload.photo_messages('uploads/Кот_' + words[1] + '.jpg')
                     attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
                     await send_picture(chat_id, methods.parse_horoscope(words[1]), attachment)
                 else:
@@ -79,9 +85,17 @@ async def event_handle(event):
                 else:
                     await write_msg(chat_id, methods.parse_schedule(words[1], words[2]))
 
-            if len(words) > 1 and msg[0] != '/':
-                methods.refresh_chats_info(chat_id, user_id, msg)
-
+            ### Обновлеям токсичность чата
+            methods.refresh_chats_info(chat_id, user_id, msg)
+            
+            try:            
+                if chat_id in chats_limit:
+                    if chats_info[chat_id][user_id] > chats_limit[chat_id]:
+                        await kick_user(chat_id, user_id)
+                        await write_msg(chat_id, 'ОСУЖДАЮ БЫДЛО')
+                        chats_info[chat_id][user_id] = 0.0
+            except:
+                await log('Rights_error', 'attempt to kick the conversation administrator')
     
         elif event.type == VkBotEventType.MESSAGE_NEW and (event.message.action.get('type') == 'chat_invite_user' or event.message.action.get('type') == 'chat_invite_user_by_link'):
             member_id = event.message.action.get('member_id')

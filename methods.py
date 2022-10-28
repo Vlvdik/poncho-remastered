@@ -16,6 +16,17 @@ async def event_logs(name, value, user_id=''):
 def shoot():
     return random.randint(0,5)
 
+def set_chat_limit(chat_id, value):
+    try:
+        chats_limit[chat_id] = float(value)
+        
+        if float(value) == 0.0:
+            chats_limit.pop(chat_id, None)
+
+        return 'Задано'
+    except:
+        return 'Задан неккоректный лимит'
+
 def get_chat_info(chat_id):
     result = '❗РЕЙТИНГ ТОКСИЧНОСТИ В ЭТОМ ЧАТЕ❗\n\nБыдло #1: '
     chats_info[chat_id] = dict(sorted(chats_info[chat_id].items(), key=lambda x: x[1], reverse=True))
@@ -34,9 +45,9 @@ def toxicity_handler(msg):
         labels = response[0]
         
         if labels[0]['label'] == 'LABEL_1':
-            return labels[0]['score'] - labels[1]['score']
+            return round(labels[0]['score'] - labels[1]['score'], 3)
         else:
-            return labels[1]['score'] - labels[0]['score']
+            return round(labels[1]['score'] - labels[0]['score'], 3)
     except:
         print('Нейронка грузится')
         return 0.0
@@ -46,11 +57,11 @@ def refresh_chats_info(chat_id, user_id, msg):
 
     if chat_id in chats_info:
         if user_id in chats_info[chat_id]:
-            chats_info[chat_id][user_id] += round(score, 3)
+            chats_info[chat_id][user_id] += score
         else:
-            chats_info[chat_id][user_id] = round(score, 3)
+            chats_info[chat_id][user_id] = score
     else:
-        chats_info[chat_id] = {user_id : round(score, 3)}
+        chats_info[chat_id] = {user_id : score}
 
 def bibametr(user_id):
     res = random.randint(-100,100)

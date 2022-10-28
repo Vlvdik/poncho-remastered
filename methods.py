@@ -17,11 +17,13 @@ def shoot():
     return random.randint(0,5)
 
 def get_chat_info(chat_id):
-    result = '❗РЕЙТИНГ ТОКСИЧНОСТИ В ЭТОМ ЧАТЕ❗\n\n'
+    result = '❗РЕЙТИНГ ТОКСИЧНОСТИ В ЭТОМ ЧАТЕ❗\n\nБыдло #1: '
+    chats_info[chat_id] = dict(sorted(chats_info[chat_id].items(), key=lambda x: x[1], reverse=True))
 
     for user in chats_info[chat_id]:
         score = chats_info[chat_id][user]
         result += f'@id{str(user)}, значение токсичности: {str(score)}\n'
+
     return result
 
 def toxicity_handler(msg):
@@ -44,12 +46,12 @@ def refresh_chats_info(chat_id, user_id, msg):
 
     if chat_id in chats_info:
         if user_id in chats_info[chat_id]:
-            chats_info[chat_id][user_id] += score
+            chats_info[chat_id][user_id] += round(score, 3)
         else:
-            chats_info[chat_id][user_id] = score
+            chats_info[chat_id][user_id] = round(score, 3)
     else:
-        chats_info[chat_id] = {user_id : score}
-        
+        chats_info[chat_id] = {user_id : round(score, 3)}
+
 def bibametr(user_id):
     res = random.randint(-100,100)
     smile = ''

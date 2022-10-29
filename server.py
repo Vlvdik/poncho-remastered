@@ -1,29 +1,15 @@
 import asyncio
-import vk_api
 import methods
-from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
-from config import *
+import handlers
+from vk_api.bot_longpoll import VkBotEventType
+from config import chats_limit, bot_id
 
-authorize = vk_api.VkApi(token = main_token)
-upload = vk_api.VkUpload(authorize)
-longpoll = VkBotLongPoll(authorize, group_id)
 log = methods.event_logs
-
-### Методы для общения с ВК
-async def write_msg(chat_id, message):
-    authorize.method('messages.send', {'chat_id': chat_id, 'message': message, 'random_id': 0})
-
-async def send_picture(chat_id, message, attachment):
-    authorize.method('messages.send', {'chat_id': chat_id, 'message': message, 'attachment': attachment, 'random_id': 0})
-
-async def kick_user(chat_id, member_id):
-    authorize.method('messages.removeChatUser', {'chat_id' : chat_id, 'user_id' : member_id})
 
 ### Вхождение в луп
 async def main():
-    for event in longpoll.listen():
+    for event in handlers.longpoll.listen():
         try:
-            # print(event)
             await event_handle(event)
         except:
             methods.event_logs('Server_error', 'breaks in the program logic')
@@ -34,7 +20,7 @@ async def event_handle(event):
 
         ### Часто использующиеся параметры
         msg = event.message.get('text').lower()
-        words = event.message.get('text').lower().split()
+        words = msg.split()
         chat_id = event.chat_id
         user_id = event.message.get('from_id')    
 
@@ -43,78 +29,54 @@ async def event_handle(event):
             await log('New_message', msg, user_id)
 
             if msg == '/help':
-                await write_msg(chat_id, helper)
+                await handlers.help(chat_id)
 
             if msg == '/bibametr':
-                await write_msg(chat_id, methods.bibametr(user_id))
+                await handlers.bibametr(chat_id, user_id)
 
-            if msg == '/быдло' and chats_info:
-                await write_msg(chat_id, methods.get_chat_info(chat_id))
-
-            if words[0] == '/лимит':
-                if len(words) > 1:
-                    await write_msg(chat_id, methods.set_chat_limit(chat_id, words[1]))
-                else:
-                    await write_msg(chat_id, 'Укажите значение лимита')
+            if msg == '/быдло':
+                await handlers.bydlo(chat_id)
 
             if msg == '/рулетка':
-                try:
-                    if methods.shoot():
-                        await write_msg(chat_id, 'ВСЕ ХОРОШО👍')
-                    else:
-                        await write_msg(chat_id, 'АХАХАХАХАХА, КЛАССИК🔫')
-                        await kick_user(chat_id, user_id)
-                except:
-                    await write_msg(chat_id, f'@id{user_id} (Админ), это шутка, я никогда бы не выстрелил в кормильца :3')
+                await handlers.roulette(chat_id, user_id)
 
-            if msg == '/гороскоп':
-                await write_msg(chat_id, 'Укажите знак зодиака 👺')
-            elif words[0] == '/гороскоп':
-                if words[1] in zodiac_signs:
-                    photo = upload.photo_messages('uploads/Кот_' + words[1] + '.jpg')
-                    attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
-                    await send_picture(chat_id, methods.parse_horoscope(words[1]), attachment)
-                else:
-                    await write_msg(chat_id, 'Моими лапами невозможно найти подобный знак зодиака 😿') 
+            if words[0] == '/лимит':
+                await handlers.set_limit(chat_id, words)
+
+            if words[0] == '/гороскоп':
+                await handlers.horoscope(chat_id, words)
 
             if words[0] == '/расписание':
-                if msg == words[0] or len(words) == 2:
-                    await write_msg(chat_id, 'Укажите КУРС и ГРУППУ!')
-                elif len(words) > 3:
-                    await write_msg(chat_id, methods.parse_schedule(words[1], words[2], words[3]))
-                else:
-                    await write_msg(chat_id, methods.parse_schedule(words[1], words[2]))
+                await handlers.schedule(chat_id, words)
 
             ### Обновлеям токсичность чата
             methods.refresh_chats_info(chat_id, user_id, msg)
             
-            try:            
-                if chat_id in chats_limit:
-                    if chats_info[chat_id][user_id] > chats_limit[chat_id]:
-                        await kick_user(chat_id, user_id)
-                        await write_msg(chat_id, 'ОСУЖДАЮ БЫДЛО')
-                        chats_info[chat_id][user_id] = 0.0
-            except:
-                await log('Rights_error', 'attempt to kick the conversation administrator')
+            if chat_id in chats_limit:
+                try:
+                    await handlers.check_chat_limit(chat_id, user_id)
+                except:
+                    await log('Rights_error', 'attempt to kick the conversation administrator')
     
         elif event.type == VkBotEventType.MESSAGE_NEW and (event.message.action.get('type') == 'chat_invite_user' or event.message.action.get('type') == 'chat_invite_user_by_link'):
             member_id = event.message.action.get('member_id')
+            
             if member_id == bot_id:
                 await log('New_chat', chat_id)
-                await write_msg(chat_id, f"Приветствую кожанные\nЯ Пончо, буду вашим помошником. Но для этого, дайте мне права админа :3")
+                await handlers.chat_greeting(chat_id)
             else:
                 await log('New_user', member_id)
-                await write_msg(chat_id, f"@id{member_id} (Кожанный), приветствую, какими судьбами?\nДа и вообще, расскажи о себе")
+                await handlers.user_greeting(chat_id, member_id)
     
         elif event.type == VkBotEventType.MESSAGE_NEW and event.message.action.get('type') == 'chat_kick_user':
             member_id = event.message.action.get('member_id')
             
             if user_id == member_id:
                 await log('Leave_user', member_id)
-                await write_msg(chat_id, f"@id{member_id} (Чел) не выдержал и свалил")
+                await handlers.leave_user(chat_id, member_id)                
             else:    
                 await log('Kick_user', member_id)
-                await write_msg(chat_id, f"@id{user_id} (Человек) отправил в далекое плавание @id{member_id} (человека)\nPress F")
+                await handlers.kick_user(chat_id, user_id, member_id)
     except:
         await methods.event_logs('Handle_error', 'undefiend event')
 

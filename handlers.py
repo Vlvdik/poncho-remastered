@@ -71,7 +71,7 @@ async def roulette(chat_id, user_id):
 async def horoscope(chat_id, words):
     try:
         if words[1] in zodiac_signs:
-            photo = upload.photo_messages('uploads/Кот_' + words[1] + '.jpg')
+            photo = upload.photo_messages('Ваш путь к картинке')
             attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
         
             await send_picture(chat_id, methods.parse_horoscope(words[1]), attachment)

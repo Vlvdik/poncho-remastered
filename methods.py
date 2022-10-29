@@ -13,9 +13,6 @@ async def event_logs(name, value, user_id=''):
     else:
         print(f'\n[{name}]: {value}')
 
-def shoot():
-    return random.randint(0,5)
-
 def set_chat_limit(chat_id, value):
     try:
         chats_limit[chat_id] = float(value)
@@ -62,17 +59,6 @@ def refresh_chats_info(chat_id, user_id, msg):
             chats_info[chat_id][user_id] = score
     else:
         chats_info[chat_id] = {user_id : score}
-
-def bibametr(user_id):
-    res = random.randint(-100,100)
-    smile = ''
-
-    if res >= 30:
-        smile = '🙀'
-    else:
-        smile = '😿'
-
-    return f"@id{user_id} (Чел), биба {res} см {smile}"
 
 def parse_horoscope(msg):   
     URL = zodiac_sign_urls[msg]

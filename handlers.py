@@ -22,7 +22,6 @@ async def kick_user(chat_id, member_id):
 async def help(chat_id):
     await write_msg(chat_id, helper)
 
-
 async def chat_greeting(chat_id):
     await write_msg(chat_id, f"Приветствую кожанные\nЯ Пончо, буду вашим помошником. Но для этого, дайте мне права админа :3")
 
@@ -73,19 +72,17 @@ async def horoscope(chat_id, words):
         if words[1] in zodiac_signs:
             photo = upload.photo_messages('Ваш путь к картинке')
             attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
-        
-            await send_picture(chat_id, methods.parse_horoscope(words[1]), attachment)
+
+            await send_picture(chat_id, await methods.get_horoscope(words[1]), attachment)
         else:
             await write_msg(chat_id, 'Моими лапами невозможно найти подобный знак зодиака 😿') 
     except:
         await write_msg(chat_id, 'Укажите знак зодиака 👺')
 
+
 async def schedule(chat_id, words):
     try:
-        if len(words) > 3:
-            await write_msg(chat_id, methods.parse_schedule(words[1], words[2], words[3]))
-        else:
-            await write_msg(chat_id, methods.parse_schedule(words[1], words[2]))
+        await write_msg(chat_id, await methods.parse_schedule(words))
     except:
         await write_msg(chat_id, 'Укажите КУРС и ГРУППУ!')
 

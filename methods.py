@@ -1,9 +1,8 @@
-import json
-import os
-import random
+import aiofiles.os
 import requests
 import docx
 import urllib.request
+from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 from config import *
 
@@ -60,44 +59,53 @@ def refresh_chats_info(chat_id, user_id, msg):
     else:
         chats_info[chat_id] = {user_id : score}
 
-def parse_horoscope(msg):   
-    URL = zodiac_sign_urls[msg]
+async def get_horoscope(msg):       
+    async with ClientSession() as session:
+        async with session.get(zodiac_sign_urls[msg], headers=HEADERS) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
+            items = soup.findAll('div', class_='article__item article__item_alignment_left article__item_html')
+            comps = []
 
-    response = requests.get(URL, headers=HEADERS)
-    soup = BeautifulSoup(response.content, 'html.parser')
-    items = soup.findAll('div', class_='article__item article__item_alignment_left article__item_html')
-    comps = []
+            for item in items:
+                comps.append({
+                'data': item.findAll('p')
+                })
 
-    for item in items:
-        comps.append({
-            'data': item.findAll('p')
-        })
+            string = comps[0]['data'][0].get_text(strip=True) + "\n" + comps[0]['data'][1].get_text(strip=True)
+            result = f"🌟 Гороскоп на сегодня: {msg} {zodiac_signs[msg]} \n\n🟠 {string}"
 
-    string = comps[0]['data'][0].get_text(strip=True) + "\n" + comps[0]['data'][1].get_text(strip=True)
-    result = f"🌟 Гороскоп на сегодня: {msg} {zodiac_signs[msg]} \n\n🟠 {string}"
-    return result
+            return result
 
-def parse_schedule(course, group, value="неделя"):
+async def get_schedule(words):
     try:
-        if int(course) not in range(1,8):
+        if int(words[1]) not in range(1,8):
             return "Курс не найден/не соответствует реальности😿"
     except:
         return "Курс это не буквы☝"
 
     ###Тянем ссылку на расписание группы
-    response = requests.get(schedule_link + "_groups?i=0&f=0&k=" + course, headers=HEADERS)
-    soup = BeautifulSoup(response.content, 'html.parser')
-    items = soup.find('td', string=group.upper())
+    async with ClientSession() as session:
+        async with session.get(schedule_link + "_groups?i=0&f=0&k=" + words[1], headers=HEADERS) as response:
+            
+            soup = BeautifulSoup(await response.text(), 'html.parser')
+            items = soup.find('td', string=words[2].upper())
     
-    if items == None:
-        return 'Группа не найдена/не существует 😢'
-    else:
-        url_id = items.find_next('a').get('href')[22:]
+            if items == None:
+                return 'Группа не найдена/не существует 😢'
+            else:
+                file_link = schedule_link + '_word_blank?' + items.find_next('a').get('href')[22:]
+                filename = 'Schedule_' + words[2].upper() + '.docx'
+
+                if len(words) > 3:
+                    return await parse_schedule(filename, file_link, words[3])
+                else:
+                    return await parse_schedule(filename, file_link)
 
     ###Тянем само расписание 
-    
-    filename = 'Schedule_' + group.upper() + '.docx'
-    urllib.request.urlretrieve(schedule_link + '_word_blank?' + url_id, filename)
+
+async def parse_schedule(filename, file_link, value="неделя"):
+
+    urllib.request.urlretrieve(file_link, filename)
     doc = docx.Document(filename)
     table = doc.tables[0]
     result = ''
@@ -160,10 +168,9 @@ def parse_schedule(course, group, value="неделя"):
                 last_string = string
         
             result += '\n' + string
-    
-    os.remove(filename)
+
+    await aiofiles.os.remove(filename)
 
     if result.lower()[2:-1] == value:
         result = result[:-1] + '❌'
-
-    return result + '\n\n💾Ссылка на файл с расписанием на неделю: ' + schedule_link + '_word_blank?' + url_id
+    return result + '\n\n💾Ссылка на файл с расписанием на неделю: ' + file_link

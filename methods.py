@@ -1,16 +1,10 @@
+
 import aiofiles.os
-import requests
 import docx
 import urllib.request
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 from config import *
-
-async def event_logs(name, value, user_id=''):
-    if user_id:
-        print(f'\n[{name}]: {value} \n[From_user]: {user_id}')
-    else:
-        print(f'\n[{name}]: {value}')
 
 def set_chat_limit(chat_id, value):
     try:
@@ -33,23 +27,23 @@ def get_chat_info(chat_id):
 
     return result
 
-def toxicity_handler(msg):
+async def toxicity_handler(msg):
     payload = {"inputs": msg}
-    response = requests.post(API_URL, headers=headers_for_model, json=payload).json()
+    
+    async with ClientSession() as session:
+        async with session.post(API_URL, headers=headers_for_model, json=payload) as response:
+            try:
+                labels = await response.json()
+                
+                if labels[0][0]['label'] == 'LABEL_1':
+                    return round(labels[0][0]['score'] - labels[0][1]['score'], 3)
+                else:
+                    return round(labels[0][1]['score'] - labels[0][0]['score'], 3)
+            except:
+                return 0.0
 
-    try:
-        labels = response[0]
-        
-        if labels[0]['label'] == 'LABEL_1':
-            return round(labels[0]['score'] - labels[1]['score'], 3)
-        else:
-            return round(labels[1]['score'] - labels[0]['score'], 3)
-    except:
-        print('Нейронка грузится')
-        return 0.0
-
-def refresh_chats_info(chat_id, user_id, msg):
-    score = toxicity_handler(msg)
+async def refresh_chats_info(chat_id, user_id, msg):
+    score = await toxicity_handler(msg)
 
     if chat_id in chats_info:
         if user_id in chats_info[chat_id]:
@@ -86,7 +80,6 @@ async def get_schedule(words):
     ###Тянем ссылку на расписание группы
     async with ClientSession() as session:
         async with session.get(schedule_link + "_groups?i=0&f=0&k=" + words[1], headers=HEADERS) as response:
-            
             soup = BeautifulSoup(await response.text(), 'html.parser')
             items = soup.find('td', string=words[2].upper())
     
@@ -104,7 +97,6 @@ async def get_schedule(words):
     ###Тянем само расписание 
 
 async def parse_schedule(filename, file_link, value="неделя"):
-
     urllib.request.urlretrieve(file_link, filename)
     doc = docx.Document(filename)
     table = doc.tables[0]

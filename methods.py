@@ -1,3 +1,4 @@
+import asyncio
 import aiofiles.os
 import docx
 import urllib.request
@@ -14,9 +15,9 @@ async def toxicity_handler(msg):
                 labels = await response.json()
                 
                 if labels[0][0]['label'] == 'LABEL_1':
-                    return round(labels[0][0]['score'] - labels[0][1]['score'], 3)
+                    return labels[0][0]['score'] - labels[0][1]['score']
                 else:
-                    return round(labels[0][1]['score'] - labels[0][0]['score'], 3)
+                    return labels[0][1]['score'] - labels[0][0]['score']
             except:
                 return 0.0
 
@@ -73,35 +74,41 @@ async def get_schedule(words):
                     return await parse_schedule(filename, file_link)
 
     ###Тянем само расписание 
-
 async def parse_schedule(filename, file_link, value="неделя"):
     urllib.request.urlretrieve(file_link, filename)
     doc = docx.Document(filename)
     table = doc.tables[0]
+    remote_marker = False
     result = ''
     last_string = ''
 
     if value in day_of_weeks:
-        marker = False
+        day_marker = False
         
         for row in table.rows:
             string = ''
 
             if row.cells[0].text.lower() == value:
-                marker = True   
+                day_marker = True   
             elif row.cells[0].text.lower() in day_of_weeks:
-                marker = False
+                day_marker = False
 
             for cell in row.cells:
                 if ' ' + cell.text == string:
                     string += '✅'
                     break
+                if len(cell.text.split()) > 0 and cell.text.split()[0] == 'Дистанционная':
+                    remote_marker = True
                 elif cell.text.isnumeric():
                     string = cell.text + ')'
                     continue
                 string += ' ' + cell.text
+            
+            if remote_marker:
+                string += '\n     (Ссылка на дистант: https://ies.unitech-mo.ru/remote_provision)'
+                remote_marker = False
 
-            if marker:
+            if day_marker:
                 result += '\n' + string
             else:
                 continue
@@ -115,6 +122,8 @@ async def parse_schedule(filename, file_link, value="неделя"):
                     break
                 elif ' ' + cell.text == string:
                     break
+                elif len(cell.text.split()) > 0 and cell.text.split()[0] == 'Дистанционная':
+                    remote_marker = True
                 elif cell.text.isnumeric():
                     string = cell.text + ')'
                     continue
@@ -136,7 +145,11 @@ async def parse_schedule(filename, file_link, value="неделя"):
 
             if string != '':
                 last_string = string
-        
+
+            if remote_marker:
+                string += '\n     (Ссылка на дистант: https://ies.unitech-mo.ru/remote_provision)'
+                remote_marker = False
+
             result += '\n' + string
 
     await aiofiles.os.remove(filename)

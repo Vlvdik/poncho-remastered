@@ -1,4 +1,5 @@
 import asyncio
+from cProfile import run
 import aiofiles.os
 import docx
 import urllib.request
@@ -105,7 +106,7 @@ async def parse_schedule(filename, file_link, value="неделя"):
                 string += ' ' + cell.text
             
             if remote_marker:
-                string += '\n     (Ссылка на дистант: https://ies.unitech-mo.ru/remote_provision)'
+                string += f'\n     (Ссылка на дистант: {remote_link})'
                 remote_marker = False
 
             if day_marker:
@@ -146,14 +147,16 @@ async def parse_schedule(filename, file_link, value="неделя"):
             if string != '':
                 last_string = string
 
-            if remote_marker:
-                string += f'\n     (Ссылка на дистант: {remote_link}'
-                remote_marker = False
-
             result += '\n' + string
 
-    await aiofiles.os.remove(filename)
+            if remote_marker:
+                result += f'\n     (Ссылка на дистант: {remote_link})'
+                remote_marker = False
 
+    await aiofiles.os.remove(filename)
+    
+    if result == '':
+        result = 'Каникулы/праздник'
     if result.lower()[2:-1] == value:
         result = result[:-1] + '❌'
     return result + '\n\n💾Ссылка на файл с расписанием на неделю: ' + file_link

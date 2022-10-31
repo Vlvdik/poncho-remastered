@@ -1,0 +1,6 @@
+FROM python:3.8-slim-buster
+
+COPY . /github.com/Vlvdik/poncho-remastered/
+WORKDIR /github.com/Vlvdik/poncho-remastered/
+
+RUN pip3 install -r requirements.txt

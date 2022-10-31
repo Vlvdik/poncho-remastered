@@ -67,7 +67,7 @@ async def get_chat_info(chat_id):
 
         for user in chats_info[chat_id]:
             score = chats_info[chat_id][user]
-            result += f'@id{str(user)}, значение токсичности: {str(score)}\n'
+            result += f'@id{str(user)}, значение токсичности: {str(round(score, 3))}\n'
         
         await write_msg(chat_id, result)
     else:
@@ -86,7 +86,7 @@ async def roulette(chat_id, user_id):
 async def horoscope(chat_id, words):
     try:
         if words[1] in zodiac_signs:
-            photo = upload.photo_messages('Ваш путь к картинкам')
+            photo = upload.photo_messages('Ваш путь к файлу')
             attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
 
             await send_picture(chat_id, await methods.get_horoscope(words[1]), attachment)

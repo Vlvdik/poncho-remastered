@@ -1,5 +1,3 @@
-import asyncio
-from cProfile import run
 import aiofiles.os
 import docx
 import urllib.request

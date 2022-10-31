@@ -5,27 +5,6 @@ from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 from config import *
 
-def set_chat_limit(chat_id, value):
-    try:
-        chats_limit[chat_id] = float(value)
-        
-        if float(value) == 0.0:
-            chats_limit.pop(chat_id, None)
-
-        return 'Задано'
-    except:
-        return 'Задан неккоректный лимит'
-
-def get_chat_info(chat_id):
-    result = '❗РЕЙТИНГ ТОКСИЧНОСТИ В ЭТОМ ЧАТЕ❗\n\nБыдло #1: '
-    chats_info[chat_id] = dict(sorted(chats_info[chat_id].items(), key=lambda x: x[1], reverse=True))
-
-    for user in chats_info[chat_id]:
-        score = chats_info[chat_id][user]
-        result += f'@id{str(user)}, значение токсичности: {str(score)}\n'
-
-    return result
-
 async def toxicity_handler(msg):
     payload = {"inputs": msg}
     

@@ -147,7 +147,7 @@ async def parse_schedule(filename, file_link, value="неделя"):
                 last_string = string
 
             if remote_marker:
-                string += '\n     (Ссылка на дистант: https://ies.unitech-mo.ru/remote_provision)'
+                string += f'\n     (Ссылка на дистант: {remote_link}'
                 remote_marker = False
 
             result += '\n' + string

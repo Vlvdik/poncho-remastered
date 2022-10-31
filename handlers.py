@@ -45,17 +45,33 @@ async def bibametr(chat_id, user_id):
 
     await write_msg(chat_id, f'@id{user_id} (Чел), биба {res} см {smile}')
 
-async def bydlo(chat_id):
-    if chats_info:
-        await write_msg(chat_id, methods.get_chat_info(chat_id))
-    else:
-        await write_msg(chat_id, 'Инфы о чате еще нет или она отсутствует')
-
-async def set_limit(chat_id, words):
+async def set_chat_limit(chat_id, words):
     if len(words) > 1:
-        await write_msg(chat_id, methods.set_chat_limit(chat_id, words[1]))
+        try:
+            chats_limit[chat_id] = float(words[1])
+        
+            if float(words[1]) == 0.0:
+                chats_limit.pop(chat_id, None)
+
+            await write_msg(chat_id, 'Задано')
+        except:
+            await write_msg(chat_id, 'Задан неккоректный лимит')
     else:
         await write_msg(chat_id, 'Укажите значение лимита')
+
+
+async def get_chat_info(chat_id):
+    if chats_info:
+        result = '❗РЕЙТИНГ ТОКСИЧНОСТИ В ЭТОМ ЧАТЕ❗\n\nБыдло #1: '
+        chats_info[chat_id] = dict(sorted(chats_info[chat_id].items(), key=lambda x: x[1], reverse=True))
+
+        for user in chats_info[chat_id]:
+            score = chats_info[chat_id][user]
+            result += f'@id{str(user)}, значение токсичности: {str(score)}\n'
+        
+        await write_msg(chat_id, result)
+    else:
+        await write_msg(chat_id, 'Инфы о чате еще нет или она отсутствует')
 
 async def roulette(chat_id, user_id):
     try:

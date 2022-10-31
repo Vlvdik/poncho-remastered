@@ -5,7 +5,7 @@ import handlers
 from vk_api.bot_longpoll import VkBotEventType
 from config import chats_limit, bot_id
 
-logging.basicConfig(level=logging.INFO, filename='Ваш путь к логам')
+logging.basicConfig(level=logging.INFO, filename='logs\server.log')
 log = logging.getLogger('SERVER.PY')
 
 ### Вхождение в луп
@@ -37,13 +37,13 @@ async def event_handle(event):
                 await handlers.bibametr(chat_id, user_id)
 
             if msg == '/быдло':
-                await handlers.bydlo(chat_id)
+                await handlers.get_chat_info(chat_id)
 
             if msg == '/рулетка':
                 await handlers.roulette(chat_id, user_id)
 
             if words[0] == '/лимит':
-                await handlers.set_limit(chat_id, words)
+                await handlers.set_chat_limit(chat_id, words)
 
             if words[0] == '/гороскоп':
                 await handlers.horoscope(chat_id, words)

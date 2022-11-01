@@ -3,7 +3,7 @@ import asyncio
 import methods
 import handlers
 from vk_api.bot_longpoll import VkBotEventType
-from config import chats_limit, bot_id
+from config import chats_limit, bot_id, users_group, forms, buttons
 
 logging.basicConfig(level=logging.INFO, filename='logs\server.log')
 log = logging.getLogger('SERVER.PY')
@@ -26,8 +26,26 @@ async def event_handle(event):
         chat_id = event.chat_id
         user_id = event.message.get('from_id')    
 
-        if event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and event.message.get('text') != "":
+        if event.type == VkBotEventType.MESSAGE_NEW and event.from_user and event.message.get('text') != "":
             
+            log.info(f'\nNEW DIRECT MESSAGE: {msg} FROM USER: {user_id}\n')
+
+            if msg == 'начать' and  user_id not in users_group:
+                await handlers.start(user_id)
+            elif msg in forms:
+                await handlers.set_form(user_id, msg)
+            elif msg == 'назад' and user_id in users_group:
+                await handlers.back(user_id)
+            elif user_id in users_group:
+                if 'Группа' in users_group[user_id]:
+                    await handlers.push_button(user_id, msg)
+                else:
+                    await handlers.set_group(user_id, msg)
+            else:
+                await handlers.write_msg(user_id, 'Такая команда недоступна')
+
+        elif event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and event.message.get('text') != "":
+    
             log.info(f'\nNEW MESSAGE: {msg} \nFROM CHAT: {chat_id} \nFROM USER: {user_id}\n')
 
             if msg == '/help':

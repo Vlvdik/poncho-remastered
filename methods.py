@@ -31,9 +31,11 @@ async def refresh_chats_info(chat_id, user_id, msg):
     else:
         chats_info[chat_id] = {user_id : score}
 
-async def get_horoscope(msg):       
+async def get_horoscope(sign, period='сегодня'):    
+    if period not in zodiac_sign_route:
+        period = 'сегодня'
     async with ClientSession() as session:
-        async with session.get(zodiac_sign_urls[msg], headers=HEADERS) as response:
+        async with session.get(zodiac_sign_urls[sign] + zodiac_sign_route[period], headers=HEADERS) as response:
             soup = BeautifulSoup(await response.text(), 'html.parser')
             items = soup.findAll('div', class_='article__item article__item_alignment_left article__item_html')
             comps = []
@@ -44,7 +46,7 @@ async def get_horoscope(msg):
                 })
 
             string = comps[0]['data'][0].get_text(strip=True) + "\n" + comps[0]['data'][1].get_text(strip=True)
-            result = f"🌟 Гороскоп на сегодня: {msg} {zodiac_signs[msg]} \n\n🟠 {string}"
+            result = f"🌟 Гороскоп на {period}: {sign} {zodiac_signs[sign]} \n\n🟠 {string}"
 
             return result
 

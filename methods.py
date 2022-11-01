@@ -135,8 +135,6 @@ async def parse_schedule(filename, file_link, value="неделя"):
                 elif cell.text.isnumeric():
                     string = cell.text + ')'
                     continue
-
-                string += ' ' + cell.text
         
             if string.lower()[1:] in day_of_weeks:
                 try:

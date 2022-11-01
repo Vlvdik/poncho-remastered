@@ -90,7 +90,7 @@ async def parse_schedule(filename, file_link, value="неделя"):
     urllib.request.urlretrieve(file_link, filename)
     doc = docx.Document(filename)
     table = doc.tables[0]
-    # remote_marker = False
+    remote_marker = False
     result = ''
     last_string = ''
 
@@ -99,27 +99,23 @@ async def parse_schedule(filename, file_link, value="неделя"):
         
         for row in table.rows:
             string = ''
-
-            if row.cells[0].text.lower() == value:
-                day_marker = True   
-            elif row.cells[0].text.lower() in day_of_weeks:
-                day_marker = False
+            if len(row.cells[0].text.split()) > 0:
+                if row.cells[0].text.split()[0].lower() == value:
+                    day_marker = True   
+                elif row.cells[0].text.split()[0].lower() in day_of_weeks:
+                    day_marker = False
 
             for cell in row.cells:
                 if ' ' + cell.text == string:
                     string += '✅'
                     break
-                # if len(cell.text.split()) > 0 and cell.text.split()[0] == 'Дистанционная':
-                #     remote_marker = True
+                if len(cell.text.split()) > 0 and cell.text.split()[0] == 'Дистанционная' and day_marker:
+                    remote_marker = True
                 elif cell.text.isnumeric():
                     string = cell.text + ')'
                     continue
                 string += ' ' + cell.text
             
-            # if remote_marker:
-            #     string += f'\n     (Ссылка на дистант: {remote_link})'
-            #     remote_marker = False
-
             if day_marker:
                 result += '\n' + string
             else:
@@ -132,10 +128,10 @@ async def parse_schedule(filename, file_link, value="неделя"):
             for cell in row.cells:
                 if cell.text.lower() == 'пара':
                     break
+                if len(cell.text.split()) > 0 and cell.text.split()[0] == 'Дистанционная':
+                    remote_marker = True
                 elif ' ' + cell.text == string:
                     break
-                # elif len(cell.text.split()) > 0 and cell.text.split()[0] == 'Дистанционная':
-                #     remote_marker = True
                 elif cell.text.isnumeric():
                     string = cell.text + ')'
                     continue
@@ -160,14 +156,14 @@ async def parse_schedule(filename, file_link, value="неделя"):
 
             result += '\n' + string
 
-            # if remote_marker:
-            #     result += f'\n     (Ссылка на дистант: {remote_link})'
-            #     remote_marker = False
-
     await aiofiles.os.remove(filename)
     
     if result == '':
         result = 'Каникулы/праздник'
-    if result.lower()[2:-1] == value:
+    if result.lower()[2:-1] == value or result[-2] == ')':
         result = result[:-1] + '❌'
+    
+    if remote_marker:
+        result += '\n\n🌐Ссылка для просмотра удаленки: ' + remote_link
+    
     return result + '\n\n💾Ссылка на файл с расписанием на неделю: ' + file_link

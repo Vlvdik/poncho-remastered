@@ -28,7 +28,7 @@ async def send_picture(chat_id, message, attachment):
 async def kick_user(chat_id, member_id):
     authorize.method('messages.removeChatUser', {'chat_id' : chat_id, 'user_id' : member_id})
 
-### Обработчики конкретных событий
+### Обработчики событий из лички
 async def start(user_id):
     
     keyboard = VkKeyboard(one_time=False, inline=True)
@@ -40,7 +40,6 @@ async def start(user_id):
 
     await write_msg(user_id, starter, keyboard)
     
-
 async def set_form(user_id, form):
     if user_id in users_group:
         keyboard = VkKeyboard(one_time=True)
@@ -120,6 +119,8 @@ async def push_button(user_id, msg):
     else:
         await write_msg(user_id, 'Я не знаю такой команды (квак плак)')
 
+###Обработчики сообщений из чата
+
 async def help(chat_id):
     await write_chat_msg(chat_id, helper)
 
@@ -134,8 +135,6 @@ async def leave_user(chat_id, member_id):
 
 async def kick_user(chat_id, user_id, member_id):
     await write_chat_msg(chat_id, f"@id{user_id} (Человек) отправил в далекое плавание @id{member_id} (человека)\nPress F")
-
-
 
 async def bibametr(chat_id, user_id):
     res = random.randint(-100,100)
@@ -189,7 +188,7 @@ async def roulette(chat_id, user_id):
 async def horoscope(chat_id, words):
     try:
         if words[1] in zodiac_signs:
-            photo = upload.photo_messages('Ваш путь к картинке')
+            photo = upload.photo_messages('Ваш путь к файлу')
             attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
 
             await send_picture(chat_id, await methods.get_horoscope(words[1]), attachment)

@@ -178,10 +178,12 @@ async def roulette(chat_id, user_id):
 async def horoscope(chat_id, words):
     try:
         if words[1] in zodiac_signs:
-            photo = upload.photo_messages('Ваш путь к файлам')
+            photo = upload.photo_messages('Ваш путь к картинке')
             attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
-
-            await send_picture(chat_id, await methods.get_horoscope(words[1]), attachment)
+            if len(words) > 2:
+                await send_picture(chat_id, await methods.get_horoscope(words[1], words[2]), attachment)
+            else:
+                await send_picture(chat_id, await methods.get_horoscope(words[1]), attachment)
         else:
             await write_chat_msg(chat_id, 'Моими лапами невозможно найти подобный знак зодиака 😿') 
     except:

@@ -1,3 +1,4 @@
+from turtle import color
 import methods
 import random
 import vk_api
@@ -9,6 +10,40 @@ from config import *
 authorize = vk_api.VkApi(token = main_token)
 longpoll = VkBotLongPoll(authorize, group_id)
 upload = vk_api.VkUpload(authorize)
+start_keyboard = VkKeyboard(one_time=False)
+form_keyboard = VkKeyboard(one_time=False)
+back_keyboard = VkKeyboard(one_time=False)
+schedule_keyboard = VkKeyboard(one_time=False)
+days_keyboard = VkKeyboard(one_time=False)
+
+### Кастомим клавы
+
+start_keyboard.add_button('НАЧАТЬ', color=VkKeyboardColor.PRIMARY)
+
+form_keyboard.add_button('ОЧНАЯ', color=VkKeyboardColor.POSITIVE)
+form_keyboard.add_line()
+form_keyboard.add_button('ОЧНО-ЗАОЧНАЯ', color=VkKeyboardColor.PRIMARY)
+form_keyboard.add_line()
+form_keyboard.add_button('ЗАОЧНАЯ', color=VkKeyboardColor.NEGATIVE)
+
+back_keyboard.add_button('НАЗАД', color=VkKeyboardColor.NEGATIVE)
+
+schedule_keyboard.add_button('СМЕНИТЬ ГРУППУ', color=VkKeyboardColor.NEGATIVE)
+schedule_keyboard.add_button('НЕДЕЛЯ', color=VkKeyboardColor.POSITIVE)
+schedule_keyboard.add_button('ДЕНЬ', color=VkKeyboardColor.POSITIVE)
+schedule_keyboard.add_line()
+schedule_keyboard.add_button('СЕГОДНЯ', color=VkKeyboardColor.PRIMARY)
+
+days_keyboard.add_button('ПОНЕДЕЛЬНИК', color=VkKeyboardColor.POSITIVE)
+days_keyboard.add_button('ВТОРНИК', color=VkKeyboardColor.POSITIVE)
+days_keyboard.add_button('СРЕДА', color=VkKeyboardColor.POSITIVE)
+days_keyboard.add_line()
+days_keyboard.add_button('ЧЕТВЕРГ', color=VkKeyboardColor.POSITIVE)
+days_keyboard.add_button('ПЯТНИЦА', color=VkKeyboardColor.POSITIVE)
+days_keyboard.add_button('СУББОТА', color=VkKeyboardColor.POSITIVE)
+days_keyboard.add_line()
+days_keyboard.add_button('ВОСКРЕСЕНЬЕ', color=VkKeyboardColor.SECONDARY)
+days_keyboard.add_button('ВЫБОР РАСПИСАНИЯ', color=VkKeyboardColor.NEGATIVE)
 
 ### Методы для общения с ВК
 async def write_msg(user_id, message, keyboard=None):
@@ -30,40 +65,24 @@ async def kick_user(chat_id, member_id):
 
 ### Обработчики событий из лички
 async def start(user_id):
+    await write_msg(user_id, starter, form_keyboard)
     
-    keyboard = VkKeyboard(one_time=False, inline=True)
-    keyboard.add_button('ОЧНАЯ', color=VkKeyboardColor.POSITIVE)
-    keyboard.add_line()
-    keyboard.add_button('ОЧНО-ЗАОЧНАЯ', color=VkKeyboardColor.PRIMARY)
-    keyboard.add_line()
-    keyboard.add_button('ЗАОЧНАЯ', color=VkKeyboardColor.NEGATIVE)
+async def starter(user_id):
+    await write_msg(user_id, 'Я не до конца понял что ты просишь. Попробуй "Начать"', start_keyboard)
 
-    await write_msg(user_id, starter, keyboard)
-    
 async def set_form(user_id, form):
     if user_id in users_group:
-        keyboard = VkKeyboard(one_time=True)
-        keyboard.add_button('НАЗАД', color=VkKeyboardColor.NEGATIVE)
-
-        await write_msg(user_id, 'Ты уже выбрал форму обучения, пришли мне свою группу', keyboard)
+        await write_msg(user_id, 'Ты уже выбрал форму обучения, пришли мне свою группу', back_keyboard)
     else:    
         users_group[user_id] = {'Форма обучения': form}
-        keyboard = VkKeyboard(one_time=True)
-        keyboard.add_button('НАЗАД', color=VkKeyboardColor.NEGATIVE)
 
-        await write_msg(user_id, 'Теперь, пришли мне пожалуйста свою группу', keyboard)
+        await write_msg(user_id, 'Теперь, пришли мне пожалуйста свою группу', back_keyboard)
 
 async def set_group(user_id, group):
     if await methods.is_group(user_id, group):
         users_group[user_id]['Группа'] = group
-        keyboard = VkKeyboard(one_time=False)
-        keyboard.add_button('СМЕНИТЬ ГРУППУ', color=VkKeyboardColor.NEGATIVE)
-        keyboard.add_button('НЕДЕЛЯ', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_button('ДЕНЬ', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_line()
-        keyboard.add_button('СЕГОДНЯ', color=VkKeyboardColor.PRIMARY)
 
-        await write_msg(user_id, 'Класс, теперь ты можешь выбирать расписание!', keyboard)
+        await write_msg(user_id, 'Класс, теперь ты можешь выбирать расписание!', schedule_keyboard)
     else:
         await write_msg(user_id, 'Группа не найдена, проверьте правильность данных')
 
@@ -74,46 +93,15 @@ async def back(user_id):
 
 async def push_button(user_id, msg):
     if msg in day_of_weeks:
-        keyboard = VkKeyboard(one_time=False)
-        keyboard.add_button('ПОНЕДЕЛЬНИК', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_button('ВТОРНИК', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_button('СРЕДА', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_line()
-        keyboard.add_button('ЧЕТВЕРГ', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_button('ПЯТНИЦА', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_button('СУББОТА', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_line()
-        keyboard.add_button('ВОСКРЕСЕНЬЕ', color=VkKeyboardColor.SECONDARY)
-        keyboard.add_button('ВЫБОР РАСПИСАНИЯ', color=VkKeyboardColor.NEGATIVE)
-
-        await write_msg(user_id, await methods.parse_schedule(users_group[user_id]['Группа'], users_group[user_id]['Ссылка'], msg), keyboard)
+        await write_msg(user_id, await methods.parse_schedule(users_group[user_id]['Группа'], users_group[user_id]['Ссылка'], msg), days_keyboard)
     elif msg  == 'сменить группу':
         await back(user_id)
     elif msg  == 'неделя':
         await write_msg(user_id, await methods.parse_schedule(users_group[user_id]['Группа'], users_group[user_id]['Ссылка']))
     elif msg  == 'день':
-        keyboard = VkKeyboard(one_time=False)
-        keyboard.add_button('ПОНЕДЕЛЬНИК', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_button('ВТОРНИК', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_button('СРЕДА', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_line()
-        keyboard.add_button('ЧЕТВЕРГ', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_button('ПЯТНИЦА', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_button('СУББОТА', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_line()
-        keyboard.add_button('ВОСКРЕСЕНЬЕ', color=VkKeyboardColor.SECONDARY)
-        keyboard.add_button('ВЫБОР РАСПИСАНИЯ', color=VkKeyboardColor.NEGATIVE)
-        
-        await write_msg(user_id, 'Напиши мне день недели', keyboard) 
+        await write_msg(user_id, 'Напиши мне день недели', days_keyboard) 
     elif msg == 'выбор расписания':
-        keyboard = VkKeyboard(one_time=False)
-        keyboard.add_button('СМЕНИТЬ ГРУППУ', color=VkKeyboardColor.NEGATIVE)
-        keyboard.add_button('НЕДЕЛЯ', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_button('ДЕНЬ', color=VkKeyboardColor.POSITIVE)
-        keyboard.add_line()
-        keyboard.add_button('СЕГОДНЯ', color=VkKeyboardColor.PRIMARY)
-
-        await write_msg(user_id, 'Вернулись к расписанию', keyboard)
+        await write_msg(user_id, 'Вернулись к расписанию', schedule_keyboard)
     elif msg  == 'сегодня':
         await write_msg(user_id, await methods.parse_schedule(users_group[user_id]['Группа'], users_group[user_id]['Ссылка'], day_of_weeks[datetime.now().day]))
     else:
@@ -155,7 +143,9 @@ async def set_chat_limit(chat_id, words):
             if float(words[1]) == 0.0:
                 chats_limit.pop(chat_id, None)
 
-            await write_chat_msg(chat_id, 'Задано')
+                await write_chat_msg(chat_id, 'Лимит убран')
+            else:
+                await write_chat_msg(chat_id, 'Задано')
         except:
             await write_chat_msg(chat_id, 'Задан неккоректный лимит')
     else:
@@ -188,7 +178,7 @@ async def roulette(chat_id, user_id):
 async def horoscope(chat_id, words):
     try:
         if words[1] in zodiac_signs:
-            photo = upload.photo_messages('Ваш путь к файлу')
+            photo = upload.photo_messages('Ваш путь к файлам')
             attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
 
             await send_picture(chat_id, await methods.get_horoscope(words[1]), attachment)

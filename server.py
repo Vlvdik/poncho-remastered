@@ -42,7 +42,7 @@ async def event_handle(event):
                 else:
                     await handlers.set_group(user_id, msg)
             else:
-                await handlers.write_msg(user_id, 'Такая команда недоступна')
+                await handlers.write_msg(user_id, 'Такая команда недоступна, попробуй "Начать"')
 
         elif event.type == VkBotEventType.MESSAGE_NEW and event.from_chat and event.message.get('text') != "":
     
@@ -100,5 +100,4 @@ async def event_handle(event):
     except:
         log.warning(f'\nHANDLE ERROR: undefiend event (CHAT: {chat_id})\n')
         
-
 asyncio.run(main())

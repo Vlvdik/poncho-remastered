@@ -48,6 +48,19 @@ async def get_horoscope(msg):
 
             return result
 
+async def is_group(user_id, group):
+    async with ClientSession() as session:
+        async with session.get(schedule_link + '_groups?i=0&f=' + forms[users_group[user_id]['Форма обучения']] + '&k=0', headers=HEADERS) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
+            items = soup.find('td', string=group.upper())
+
+            if items == None:
+                return False
+            else:
+                users_group[user_id]['Ссылка'] = schedule_link + '_word_blank?' + items.find_next('a').get('href')[22:]
+            
+                return True
+
 async def get_schedule(words):
     try:
         if int(words[1]) not in range(1,8):
@@ -77,7 +90,7 @@ async def parse_schedule(filename, file_link, value="неделя"):
     urllib.request.urlretrieve(file_link, filename)
     doc = docx.Document(filename)
     table = doc.tables[0]
-    remote_marker = False
+    # remote_marker = False
     result = ''
     last_string = ''
 
@@ -96,16 +109,16 @@ async def parse_schedule(filename, file_link, value="неделя"):
                 if ' ' + cell.text == string:
                     string += '✅'
                     break
-                if len(cell.text.split()) > 0 and cell.text.split()[0] == 'Дистанционная':
-                    remote_marker = True
+                # if len(cell.text.split()) > 0 and cell.text.split()[0] == 'Дистанционная':
+                #     remote_marker = True
                 elif cell.text.isnumeric():
                     string = cell.text + ')'
                     continue
                 string += ' ' + cell.text
             
-            if remote_marker:
-                string += f'\n     (Ссылка на дистант: {remote_link})'
-                remote_marker = False
+            # if remote_marker:
+            #     string += f'\n     (Ссылка на дистант: {remote_link})'
+            #     remote_marker = False
 
             if day_marker:
                 result += '\n' + string
@@ -121,8 +134,8 @@ async def parse_schedule(filename, file_link, value="неделя"):
                     break
                 elif ' ' + cell.text == string:
                     break
-                elif len(cell.text.split()) > 0 and cell.text.split()[0] == 'Дистанционная':
-                    remote_marker = True
+                # elif len(cell.text.split()) > 0 and cell.text.split()[0] == 'Дистанционная':
+                #     remote_marker = True
                 elif cell.text.isnumeric():
                     string = cell.text + ')'
                     continue
@@ -147,9 +160,9 @@ async def parse_schedule(filename, file_link, value="неделя"):
 
             result += '\n' + string
 
-            if remote_marker:
-                result += f'\n     (Ссылка на дистант: {remote_link})'
-                remote_marker = False
+            # if remote_marker:
+            #     result += f'\n     (Ссылка на дистант: {remote_link})'
+            #     remote_marker = False
 
     await aiofiles.os.remove(filename)
     

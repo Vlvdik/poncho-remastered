@@ -98,7 +98,7 @@ async def event_handle(event):
                     await handlers.leave_user(chat_id, member_id)                
                 else:    
                     log.info(f'\nKICK USER: {member_id} (CHAT: {chat_id})\n')
-                    await handlers.kick_user(chat_id, user_id, member_id)
+                    await handlers.kick(chat_id, user_id, member_id)
     except:
         log.warning(f'\nHANDLE ERROR: undefiend event (CHAT: {chat_id})\n')
         

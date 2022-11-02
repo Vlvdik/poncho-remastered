@@ -30,8 +30,6 @@ async def event_handle(event):
 
                 if msg == 'начать' and  user_id not in users_group:
                     await handlers.start(user_id)
-                elif msg in forms:
-                    await handlers.set_form(user_id, msg)
                 elif msg == 'назад' and user_id in users_group:
                     await handlers.back(user_id)
                 elif user_id in users_group:
@@ -39,8 +37,10 @@ async def event_handle(event):
                         await handlers.push_button(user_id, msg)
                     else:
                         await handlers.set_group(user_id, msg)
+                elif msg in forms:
+                    await handlers.set_form(user_id, msg)
                 else:
-                    await handlers.starter(user_id)
+                    await handlers.undefiend_command(user_id)
 
             elif event.from_chat and event.message.get('text') != "":
                 chat_id = event.chat_id

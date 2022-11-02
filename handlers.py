@@ -61,35 +61,34 @@ async def send_picture(chat_id, message, attachment):
     authorize.method('messages.send', {'chat_id': chat_id, 'message': message, 'attachment': attachment, 'random_id': 0})
 
 async def kick_user(chat_id, member_id):
-    authorize.method('messages.removeChatUser', {'chat_id' : chat_id, 'user_id' : member_id})
+    authorize.method('messages.removeChatUser', {'chat_id' : chat_id, 'member_id' : member_id})
 
 ### Обработчики событий из лички
-async def start(user_id):
-    await write_msg(user_id, starter, form_keyboard)
+async def start(user_id, value='Привет, Я Пончо, твой пушистый помошник, своими лапами ищу расписания групп🐈'):
+    await write_msg(user_id, value + '\nДля начала, давай определимся с твоей формой обучения:', form_keyboard)
     
-async def starter(user_id):
-    await write_msg(user_id, 'Я не до конца понял что ты просишь. Попробуй "Начать"', start_keyboard)
+async def undefiend_command(user_id):
+    await start(user_id, 'Если это команда, то я ее не понял😿')
 
 async def set_form(user_id, form):
     if user_id in users_group:
-        await write_msg(user_id, 'Ты уже выбрал форму обучения, пришли мне свою группу', back_keyboard)
+        await write_msg(user_id, 'Ты уже выбрал форму обучения, пришли мне свою группу ✋🏻🐱', back_keyboard)
     else:    
         users_group[user_id] = {'Форма обучения': form}
 
-        await write_msg(user_id, 'Теперь, пришли мне пожалуйста свою группу', back_keyboard)
+        await write_msg(user_id, 'Отлично, теперь напиши мне свою группу \nЖелательно существующую😸', back_keyboard)
 
 async def set_group(user_id, group):
     if await methods.is_group(user_id, group):
         users_group[user_id]['Группа'] = group
 
-        await write_msg(user_id, 'Класс, теперь ты можешь выбирать расписание!', schedule_keyboard)
+        await write_msg(user_id, 'Группа установлена, супер! \n💥 Теперь ты можешь запрашивать расписание заданной группы, мрр', schedule_keyboard)
     else:
-        await write_msg(user_id, 'Группа не найдена, проверьте правильность данных')
+        await write_msg(user_id, 'СУЩЕСТВУЮЩУЮ группу 👺')
 
 async def back(user_id):
-    users_group.pop(user_id)
-    await write_msg(user_id, 'OK')     
-    await start(user_id)
+    users_group.pop(user_id)   
+    await start(user_id, 'Окей, давай по новой 👌🏻\n')
 
 async def push_button(user_id, msg):
     if msg in day_of_weeks:
@@ -99,13 +98,13 @@ async def push_button(user_id, msg):
     elif msg  == 'неделя':
         await write_msg(user_id, await methods.parse_schedule(users_group[user_id]['Группа'], users_group[user_id]['Ссылка']))
     elif msg  == 'день':
-        await write_msg(user_id, 'Напиши мне день недели', days_keyboard) 
+        await write_msg(user_id, 'Хорошо, теперь ты можешь выбрать конкретный день. \nP.S. Обрати внимание, что расписание выдается на ТЕКУЩУЮ неделю ❗', days_keyboard) 
     elif msg == 'выбор расписания':
-        await write_msg(user_id, 'Вернулись к расписанию', schedule_keyboard)
+        await write_msg(user_id, '👌🏻', schedule_keyboard)
     elif msg  == 'сегодня':
         await write_msg(user_id, await methods.parse_schedule(users_group[user_id]['Группа'], users_group[user_id]['Ссылка'], day_of_weeks[datetime.now().day]))
     else:
-        await write_msg(user_id, 'Я не знаю такой команды (квак плак)')
+        await write_msg(user_id, 'Если это команда, то я ее не понял😿')
 
 ###Обработчики сообщений из чата
 
@@ -113,7 +112,7 @@ async def help(chat_id):
     await write_chat_msg(chat_id, helper)
 
 async def chat_greeting(chat_id):
-    await write_chat_msg(chat_id, f"Приветствую кожанные\nЯ Пончо, буду вашим помошником. Но для этого, дайте мне права админа :3")
+    await write_chat_msg(chat_id, "Приветствую кожанные\nЯ Пончо, буду вашим помошником. Но для этого, дайте мне права админа :3")
 
 async def user_greeting(chat_id, member_id):
     await write_chat_msg(chat_id, f"@id{member_id} (Кожанный), приветствую, какими судьбами?\nДа и вообще, расскажи о себе")
@@ -121,7 +120,7 @@ async def user_greeting(chat_id, member_id):
 async def leave_user(chat_id, member_id):
     await write_chat_msg(chat_id, f"@id{member_id} (Чел) не выдержал и свалил")
 
-async def kick_user(chat_id, user_id, member_id):
+async def kick(chat_id, user_id, member_id):
     await write_chat_msg(chat_id, f"@id{user_id} (Человек) отправил в далекое плавание @id{member_id} (человека)\nPress F")
 
 async def bibametr(chat_id, user_id):
@@ -195,9 +194,10 @@ async def schedule(chat_id, words):
     except:
         await write_chat_msg(chat_id, 'Укажите КУРС и ГРУППУ!')
 
-async def check_chat_limit(chat_id, user_id):           
-    if chats_info[chat_id][user_id] > chats_limit[chat_id]:
+async def check_chat_limit(chat_id, user_id):   
+    if chats_info[chat_id][user_id] > chats_limit[chat_id]:        
         chats_info[chat_id][user_id] = 0.0
-        
+
         await kick_user(chat_id, user_id)
         await write_chat_msg(chat_id, 'ОСУЖДАЮ БЫДЛО')
+       

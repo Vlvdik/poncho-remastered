@@ -1,3 +1,4 @@
+import asyncio
 import aiofiles.os
 import docx
 import urllib.request
@@ -99,7 +100,7 @@ async def parse_schedule(filename, file_link, value="неделя"):
     if value in day_of_weeks:
         day_marker = False
         
-        for row in table.rows:
+        for row in table.rows[5:]:
             string = ''
             if len(row.cells[0].text.split()) > 0:
                 if row.cells[0].text.split()[0].lower() == value:
@@ -124,12 +125,10 @@ async def parse_schedule(filename, file_link, value="неделя"):
                 continue
    
     else:
-        for row in table.rows:
+        for row in table.rows[5:]:
             string = ''
 
             for cell in row.cells:
-                if cell.text.lower() == 'пара':
-                    break
                 if len(cell.text.split()) > 0 and cell.text.split()[0] == 'Дистанционная':
                     remote_marker = True
                 elif ' ' + cell.text == string:
@@ -137,29 +136,30 @@ async def parse_schedule(filename, file_link, value="неделя"):
                 elif cell.text.isnumeric():
                     string = cell.text + ')'
                     continue
-        
-            if string.lower()[1:] in day_of_weeks:
+                string += ' ' + cell.text
+
+            if string.split()[0].lower() in day_of_weeks:
+                
+                result += '\n'
+                
                 try:
                     string += '✅'
 
-                    if string[1:-1].lower() == "воскресенье":
+                    if last_string[:-1] in day_of_weeks or last_string in day_of_weeks:
+                        result = result[:-2]
+                        result += '❌\n'
+                    if string.split()[0].lower()[:-1] == "воскресенье":
                         string = string[:-1]
                         string += '❌'
-                    if last_string[1:-1].lower() in day_of_weeks:
-                        result = result[:-1]
-                        result += '❌'
                 except:
                     continue
 
             if string != '':
-                last_string = string
-
-            result += '\n' + string
+                last_string = string.split()[0].lower()
+            result += '\n' + string 
 
     await aiofiles.os.remove(filename)
     
-    if result == '':
-        result = 'Каникулы/праздник'
     if result.lower()[2:-1] == value or result[-2] == ')':
         result = result[:-1] + '❌'
     

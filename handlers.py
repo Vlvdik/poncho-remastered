@@ -1,4 +1,3 @@
-from turtle import color
 import methods
 import random
 import vk_api

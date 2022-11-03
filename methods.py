@@ -1,4 +1,3 @@
-import asyncio
 import aiofiles.os
 import docx
 import urllib.request

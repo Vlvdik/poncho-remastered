@@ -3,7 +3,7 @@ import asyncio
 import methods
 import handlers
 from vk_api.bot_longpoll import VkBotEventType
-from config import chats_limit, bot_id, users_group, forms, buttons
+from config import chats_limit, bot_id, users_group, forms, commands
 
 logging.basicConfig(level=logging.INFO, filename='logs\server.log')
 log = logging.getLogger('SERVER.PY')
@@ -45,8 +45,6 @@ async def event_handle(event):
             elif event.from_chat and event.message.get('text') != "":
                 chat_id = event.chat_id
 
-                log.info(f'\nNEW MESSAGE: {msg} \nFROM CHAT: {chat_id} \nFROM USER: {user_id}\n')
-
                 if msg == '/help':
                     await handlers.help(chat_id)
 
@@ -60,16 +58,19 @@ async def event_handle(event):
                     await handlers.roulette(chat_id, user_id)
 
                 if words[0] == '/лимит':
-                    await handlers.set_chat_limit(chat_id, words)
+                    await handlers.set_chat_limit(chat_id, user_id, words)
 
                 if words[0] == '/гороскоп':
                     await handlers.horoscope(chat_id, words)
 
                 if words[0] == '/расписание':
+                    log.info(f'\nNEW MESSAGE: {msg} \nFROM CHAT: {chat_id} \nFROM USER: {user_id}\n')
                     await handlers.schedule(chat_id, words)
 
                 ### Обновлеям токсичность чата
-                await methods.refresh_chats_info(chat_id, user_id, msg)
+                if words[0] in commands:
+                    await methods.refresh_chats_info(chat_id, user_id, msg)
+                
             
                 if chat_id in chats_limit:
                     try:
@@ -100,7 +101,7 @@ async def event_handle(event):
                     log.info(f'\nKICK USER: {member_id} (CHAT: {chat_id})\n')
                     await handlers.kick(chat_id, user_id, member_id)
     except:
-        log.warning(f'\nHANDLE ERROR: undefiend event (CHAT: {chat_id})\n')
+        log.warning(f'\nHANDLE ERROR: undefiend event from chat or direct\n')
         
 
 asyncio.run(main())

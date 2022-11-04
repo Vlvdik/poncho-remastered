@@ -25,7 +25,10 @@ async def refresh_chats_info(chat_id, user_id, msg):
 
     if chat_id in chats_info:
         if user_id in chats_info[chat_id]:
-            chats_info[chat_id][user_id] += score
+            if score < CHAT_LOW_HYPER_PARAMETER:
+                pass
+            else:
+                chats_info[chat_id][user_id] += score
         else:
             chats_info[chat_id][user_id] = score
     else:

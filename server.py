@@ -48,9 +48,6 @@ async def event_handle(event):
                 if msg == '/help':
                     await handlers.help(chat_id)
 
-                if msg == '/bibametr':
-                    await handlers.bibametr(chat_id, user_id)
-
                 if msg == '/быдло':
                     await handlers.get_chat_info(chat_id)
 

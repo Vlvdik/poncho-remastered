@@ -125,17 +125,6 @@ async def leave_user(chat_id, member_id):
 async def kick(chat_id, user_id, member_id):
     await write_chat_msg(chat_id, f"@id{user_id} (Кэп) отправил в далекое плавание @id{member_id} (этого морячка)\nPress F😿")
 
-async def bibametr(chat_id, user_id):
-    res = random.randint(-100,100)
-    smile = ''
-
-    if res >= 30:
-        smile = '🙀'
-    else:
-        smile = '😿'
-
-    await write_chat_msg(chat_id, f'@id{user_id} (Чел), биба {res} см {smile}')
-
 async def set_chat_limit(chat_id, user_id, words):
     if len(words) > 1:
         try:

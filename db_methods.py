@@ -68,6 +68,9 @@ async def update_chats_limit(chat_id, value):
 
 ### READ
 
+async def get_chat_limit(chat_id):
+    return cursor.execute('SELECT chats_limit FROM chats WHERE chat_id=?;', (chat_id, )).fetchone()[0]
+
 async def is_chat_have_limit(chat_id):
     if cursor.execute('SELECT chat_id FROM chats WHERE chat_id=?;', (chat_id, )).fetchone() != None:
         return True
@@ -95,6 +98,10 @@ async def update_chat_user_score(user_id, chat_id, score):
 
 async def get_score_info(chat_id):
     return cursor.execute('SELECT user_id, score FROM users WHERE users_chat=? AND score>0 ORDER BY score DESC;', (chat_id, )).fetchall()
+
+async def get_user_chat_score_info(user_id, chat_id):
+    return cursor.execute('SELECT score FROM users WHERE user_id=? AND users_chat=?;', (user_id, chat_id)).fetchone()[0]
+
 
 async def is_existed_chat(chat_id):
     if cursor.execute('SELECT users_chat FROM users WHERE users_chat=?;', (chat_id, )).fetchone() != None:

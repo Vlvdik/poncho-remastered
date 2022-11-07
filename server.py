@@ -1,15 +1,15 @@
 import logging
 import asyncio
-import methods
 import db_methods
 import handlers
 from vk_api.bot_longpoll import VkBotEventType
-from config import chats_limit, bot_id, forms, commands
+from config import bot_id, forms, commands
 
+### Logger config
 logging.basicConfig(level=logging.INFO, filename='logs\server.log')
 log = logging.getLogger('SERVER.PY')
 
-### Вхождение в луп
+### Loop
 async def main():
     for event in handlers.longpoll.listen():
         try:
@@ -17,12 +17,12 @@ async def main():
         except:
             logging.critical('SERVER ERROR: breaks in the program logic')
 
-### Основная логика тут, в том числе получение ивентов
+### Acceptance and redirection of events
 async def event_handle(event):
     try:
         if event.type == VkBotEventType.MESSAGE_NEW:
 
-            ### Часто использующиеся параметры
+            ### Commonly used parameters
             msg = event.message.get('text').lower()
             words = msg.split()
             user_id = event.message.get('from_id')  
@@ -70,11 +70,12 @@ async def event_handle(event):
                 if words[0] == '/расписание':
                     await handlers.schedule(chat_id, words)
 
-                ### Обновлеям токсичность чата
-                if words[0] in commands:
-                    await methods.refresh_chats_info(chat_id, user_id, msg)
-                   
-                if chat_id in chats_limit:
+                ### Updating chat toxicity parameters
+                if words[0] not in commands:
+                    await handlers.refresh_chats_info(chat_id, user_id, msg)
+                
+                ### Checking the user for a toxicity limit in chat (if any)
+                if await db_methods.is_chat_have_limit(chat_id):
                     try:
                         await handlers.check_chat_limit(chat_id, user_id)
                     except:
@@ -83,7 +84,8 @@ async def event_handle(event):
             elif event.message.action.get('type') == 'chat_invite_user' or event.message.action.get('type') == 'chat_invite_user_by_link':
                 member_id = event.message.action.get('member_id')
                 chat_id = event.chat_id
-   
+
+            
                 if member_id == bot_id:
                     log.info(f'\nNEW CHAT: {chat_id}\n')
                     await handlers.chat_greeting(chat_id)

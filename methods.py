@@ -1,6 +1,7 @@
 import aiofiles.os
 import docx
 import db_methods
+import random
 import urllib.request
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
@@ -15,9 +16,9 @@ async def toxicity_handler(msg):
                 labels = await response.json()
                 
                 if labels[0][0]['label'] == 'LABEL_1':
-                    return labels[0][0]['score'] - labels[0][1]['score']
+                    return labels[0][0]['score'] - labels[0][1]['score'] * random.random()
                 else:
-                    return labels[0][1]['score'] - labels[0][0]['score']
+                    return labels[0][1]['score'] - labels[0][0]['score'] * random.random()
             except:
                 return 0.0
 
@@ -52,7 +53,8 @@ async def is_group(user_id, group):
             else:
                 await db_methods.insert_link(user_id, schedule_link + '_word_blank?' + items.find_next('a').get('href')[22:])
                 return True
-
+            
+### Get a link to the schedule of the group, if it exists
 async def get_schedule(words):
     try:
         if int(words[1]) not in range(1,8):
@@ -60,7 +62,6 @@ async def get_schedule(words):
     except:
         return "Курс это не буквы☝"
 
-    ###Тянем ссылку на расписание группы
     async with ClientSession() as session:
         async with session.get(schedule_link + "_groups?i=0&f=0&k=" + words[1], headers=HEADERS) as response:
             soup = BeautifulSoup(await response.text(), 'html.parser')
@@ -77,7 +78,7 @@ async def get_schedule(words):
                 else:
                     return await parse_schedule(filename, file_link)
 
-    ###Тянем само расписание 
+### Parsing the schedule from the link
 async def parse_schedule(filename, file_link, value="неделя"):
     urllib.request.urlretrieve(file_link, filename)
     doc = docx.Document(filename)
@@ -103,7 +104,7 @@ async def parse_schedule(filename, file_link, value="неделя"):
                     break
                 if len(cell.text.split()) > 0 and cell.text.split()[0] == 'Дистанционная' and day_marker:
                     remote_marker = True
-                elif cell.text.isnumeric():
+                elif cell.text.isnumeric() and float(cell.text) < 9:
                     string = cell.text + ')'
                     continue
                 string += ' ' + cell.text
@@ -122,7 +123,7 @@ async def parse_schedule(filename, file_link, value="неделя"):
                     remote_marker = True
                 elif ' ' + cell.text == string:
                     break
-                elif cell.text.isnumeric():
+                elif cell.text.isnumeric() and float(cell.text) < 9:
                     string = cell.text + ')'
                     continue
                 string += ' ' + cell.text

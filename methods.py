@@ -15,6 +15,7 @@ async def toxicity_handler(msg):
             try:
                 labels = await response.json()
                 
+                ### Normalizing the neural network prediction
                 if labels[0][0]['label'] == 'LABEL_1':
                     return labels[0][0]['score'] - labels[0][1]['score'] * random.random()
                 else:

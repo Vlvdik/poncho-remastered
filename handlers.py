@@ -47,7 +47,7 @@ days_keyboard.add_line()
 days_keyboard.add_button('ВОСКРЕСЕНЬЕ', color=VkKeyboardColor.SECONDARY)
 days_keyboard.add_button('ВЫБОР РАСПИСАНИЯ', color=VkKeyboardColor.NEGATIVE)
 
-### Методы для общения с ВК
+### VkApi methods
 async def write_msg(user_id, message, keyboard=None):
     msg = {'user_id': user_id, 'message': message, 'random_id': 0}
 
@@ -68,7 +68,8 @@ async def kick_user(chat_id, member_id):
 async def get_conversation_info(chat_id):
     return authorize.method('messages.getConversationMembers', {'peer_id': 2000000000 + chat_id, 'group_id': group_id})['items']
 
-### Обработчики событий из лички
+### HANDLERS FOR DIRECT ###
+
 async def start(user_id, value='Привет, Я Пончо, твой пушистый помошник, своими лапами ищу расписания групп🐈'):
     await db_methods.insert_user(user_id)
     await write_msg(user_id, value + '\nДля начала, давай определимся с твоей формой обучения:', form_keyboard)
@@ -109,7 +110,7 @@ async def push_button(user_id, msg):
     else:
         await write_msg(user_id, 'Если это команда, то я ее не понял😿')
 
-###Обработчики сообщений из чата
+### HANDLERS FOR CHAT ###
 
 async def help(chat_id):
     await write_chat_msg(chat_id, helper)
@@ -146,37 +147,36 @@ async def roulette(chat_id, user_id):
             await kick_user(chat_id, user_id)
     except:
         await write_chat_msg(chat_id, f'@id{user_id} (Админ), это шутка, я никогда бы не выстрелил в кормильца :3')
-
-### Работа с инфой чата
-
+        
 async def refresh_chats_info(chat_id, user_id, msg):
     score = await methods.toxicity_handler(msg)
 
-    if chat_id in chats_info:
-        if user_id in chats_info[chat_id]:
-            if score < CHAT_LOW_HYPER_PARAMETER:
-                pass
-            else:
-                chats_info[chat_id][user_id] += score
+    if await db_methods.is_user_exist_in_current_chat(user_id, chat_id):
+        if await db_methods.get_user_chat_score_info(user_id, chat_id) < CHAT_LOW_HYPER_PARAMETER:
+            pass
         else:
-            chats_info[chat_id][user_id] = score
+            await db_methods.update_chat_user_score(user_id, chat_id, score)
     else:
-        chats_info[chat_id] = {user_id : score}
+        await db_methods.insert_chat_user_score(user_id, chat_id, score)
 
 async def set_chat_limit(chat_id, user_id, words):
     if len(words) > 1:
         try:
-            chats_limit[chat_id] = float(words[1])
             conversation_info = await get_conversation_info(chat_id)
+
             for user in conversation_info:
                 if user['member_id'] == user_id:
                     try:
                         if user['is_admin']: 
                             if float(words[1]) == 0.0:
-                                chats_limit.pop(chat_id, None)
+                                await db_methods.delete_chats_limit(chat_id)
                                 await write_chat_msg(chat_id, 'Лимит убран 👌🏻')
                                 break
                             else:
+                                if await db_methods.is_chat_have_limit(chat_id):
+                                    await db_methods.update_chats_limit(chat_id, float(words[1]))
+                                else:
+                                    await db_methods.insert_chats_limit(chat_id, float(words[1])) 
                                 await write_chat_msg(chat_id, 'Задано 👌🏻')
                                 break
                     except:
@@ -187,15 +187,14 @@ async def set_chat_limit(chat_id, user_id, words):
         await write_chat_msg(chat_id, 'Укажите значение лимита 👺')
 
 async def get_chat_info(chat_id):
-    if chats_info:
+    if await db_methods.is_existed_chat(chat_id):
         result = ''
-        chats_info[chat_id] = dict(sorted(chats_info[chat_id].items(), key=lambda x: x[1], reverse=True))
+        current_chat = await db_methods.get_score_info(chat_id)
 
-        for user in chats_info[chat_id]:
-            score = chats_info[chat_id][user]
-            
-            if score > 0: 
-                result += f'@id{str(user)}, значение токсичности: {str(round(score, 3))}\n'
+        for user in current_chat:
+            user_id = str(user[0])
+            score = str(round(user[1], 3))
+            result += f'@id{user_id}, значение токсичности: {score}\n'
         if result != '':
             await write_chat_msg(chat_id, '❗РЕЙТИНГ ТОКСИЧНОСТИ В ЭТОМ ЧАТЕ❗\n\nБыдло #1: ' + result)
         else:
@@ -204,18 +203,16 @@ async def get_chat_info(chat_id):
         await write_chat_msg(chat_id, 'Инфы о чате еще нет или она отсутствует 😿')
 
 async def check_chat_limit(chat_id, user_id):   
-    if chats_info[chat_id][user_id] > chats_limit[chat_id]:        
-        chats_info[chat_id][user_id] = 0.0
-
-        await kick_user(chat_id, user_id)
-        await write_chat_msg(chat_id, 'ОСУЖДАЮ')
-
-### Работа с парсерами
+    if await db_methods.is_existed_chat(chat_id):
+        if await db_methods.get_user_chat_score_info(user_id, chat_id) > await db_methods.get_chat_limit(chat_id):        
+            await db_methods.delete_user_from_chat(user_id, chat_id)
+            await kick_user(chat_id, user_id)
+            await write_chat_msg(chat_id, 'ОСУЖДАЮ')
 
 async def horoscope(chat_id, words):
     try:
         if words[1] in zodiac_signs:
-            photo = upload.photo_messages('Ваш путь к файлу')
+            photo = upload.photo_messages('Your files path')
             attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
             if len(words) > 2:
                 await send_picture(chat_id, await methods.get_horoscope(words[1], words[2]), attachment)

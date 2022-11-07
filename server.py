@@ -17,7 +17,7 @@ async def main():
         except:
             logging.critical('SERVER ERROR: breaks in the program logic')
 
-### Основная логика тут, в том числе обработка ивентов
+### Основная логика тут, в том числе получение ивентов
 async def event_handle(event):
     try:
         if event.type == VkBotEventType.MESSAGE_NEW:

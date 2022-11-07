@@ -1,8 +1,0 @@
-FROM python:3.8-slim-buster
-
-LABEL Author="github.com/Vlvdik"
-
-COPY . /github.com/Vlvdik/poncho-remastered/
-WORKDIR /github.com/Vlvdik/poncho-remastered/
-
-RUN pip3 install -r requirements.txt

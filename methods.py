@@ -1,5 +1,6 @@
 import aiofiles.os
 import docx
+import db_methods
 import urllib.request
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
@@ -19,20 +20,6 @@ async def toxicity_handler(msg):
                     return labels[0][1]['score'] - labels[0][0]['score']
             except:
                 return 0.0
-
-async def refresh_chats_info(chat_id, user_id, msg):
-    score = await toxicity_handler(msg)
-
-    if chat_id in chats_info:
-        if user_id in chats_info[chat_id]:
-            if score < CHAT_LOW_HYPER_PARAMETER:
-                pass
-            else:
-                chats_info[chat_id][user_id] += score
-        else:
-            chats_info[chat_id][user_id] = score
-    else:
-        chats_info[chat_id] = {user_id : score}
 
 async def get_horoscope(sign, period='сегодня'):    
     if period not in zodiac_sign_route:
@@ -55,15 +42,15 @@ async def get_horoscope(sign, period='сегодня'):
 
 async def is_group(user_id, group):
     async with ClientSession() as session:
-        async with session.get(schedule_link + '_groups?i=0&f=' + forms[users_group[user_id]['Форма обучения']] + '&k=0', headers=HEADERS) as response:
+        form = await db_methods.get_user_form(user_id)
+        async with session.get(schedule_link + '_groups?i=0&f=' + forms[form] + '&k=0', headers=HEADERS) as response:
             soup = BeautifulSoup(await response.text(), 'html.parser')
             items = soup.find('td', string=group.upper())
 
             if items == None:
                 return False
             else:
-                users_group[user_id]['Ссылка'] = schedule_link + '_word_blank?' + items.find_next('a').get('href')[22:]
-            
+                await db_methods.insert_link(user_id, schedule_link + '_word_blank?' + items.find_next('a').get('href')[22:])
                 return True
 
 async def get_schedule(words):

@@ -1,9 +1,10 @@
 import logging
 import asyncio
 import methods
+import db_methods
 import handlers
 from vk_api.bot_longpoll import VkBotEventType
-from config import chats_limit, bot_id, users_group, forms, commands
+from config import chats_limit, bot_id, forms, commands
 
 logging.basicConfig(level=logging.INFO, filename='logs\server.log')
 log = logging.getLogger('SERVER.PY')
@@ -20,6 +21,7 @@ async def main():
 async def event_handle(event):
     try:
         if event.type == VkBotEventType.MESSAGE_NEW:
+
             ### Часто использующиеся параметры
             msg = event.message.get('text').lower()
             words = msg.split()
@@ -28,12 +30,12 @@ async def event_handle(event):
 
                 log.info(f'\nNEW DIRECT MESSAGE: {msg} FROM USER: {user_id}\n')
 
-                if msg == 'начать' and  user_id not in users_group:
+                if msg == 'начать' and not await db_methods.is_existing_user(user_id):
                     await handlers.start(user_id)
-                elif msg == 'назад' and user_id in users_group:
+                elif msg == 'назад' and await db_methods.is_existing_user(user_id):
                     await handlers.back(user_id)
-                elif user_id in users_group:
-                    if 'Группа' in users_group[user_id]:
+                elif await db_methods.is_existing_user(user_id) and await db_methods.is_user_have_form(user_id):
+                    if await db_methods.is_user_have_group(user_id):
                         await handlers.push_button(user_id, msg)
                     else:
                         await handlers.set_group(user_id, msg)
@@ -45,8 +47,13 @@ async def event_handle(event):
             elif event.from_chat and event.message.get('text') != "":
                 chat_id = event.chat_id
 
+                log.info(f'\nNEW MESSAGE: {msg} \nFROM CHAT: {chat_id} \nFROM USER: {user_id}\n')
+
                 if msg == '/help':
                     await handlers.help(chat_id)
+
+                if msg == '/bibametr':
+                    await handlers.bibametr(chat_id, user_id)
 
                 if msg == '/быдло':
                     await handlers.get_chat_info(chat_id)
@@ -61,14 +68,12 @@ async def event_handle(event):
                     await handlers.horoscope(chat_id, words)
 
                 if words[0] == '/расписание':
-                    log.info(f'\nNEW MESSAGE: {msg} \nFROM CHAT: {chat_id} \nFROM USER: {user_id}\n')
                     await handlers.schedule(chat_id, words)
 
                 ### Обновлеям токсичность чата
                 if words[0] in commands:
                     await methods.refresh_chats_info(chat_id, user_id, msg)
-                
-            
+                   
                 if chat_id in chats_limit:
                     try:
                         await handlers.check_chat_limit(chat_id, user_id)
@@ -78,8 +83,7 @@ async def event_handle(event):
             elif event.message.action.get('type') == 'chat_invite_user' or event.message.action.get('type') == 'chat_invite_user_by_link':
                 member_id = event.message.action.get('member_id')
                 chat_id = event.chat_id
-
-            
+   
                 if member_id == bot_id:
                     log.info(f'\nNEW CHAT: {chat_id}\n')
                     await handlers.chat_greeting(chat_id)

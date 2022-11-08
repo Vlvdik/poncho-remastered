@@ -47,7 +47,7 @@ days_keyboard.add_line()
 days_keyboard.add_button('ВОСКРЕСЕНЬЕ', color=VkKeyboardColor.SECONDARY)
 days_keyboard.add_button('ВЫБОР РАСПИСАНИЯ', color=VkKeyboardColor.NEGATIVE)
 
-### VkApi methods
+### Методы для общения с ВК
 async def write_msg(user_id, message, keyboard=None):
     msg = {'user_id': user_id, 'message': message, 'random_id': 0}
 
@@ -68,8 +68,7 @@ async def kick_user(chat_id, member_id):
 async def get_conversation_info(chat_id):
     return authorize.method('messages.getConversationMembers', {'peer_id': 2000000000 + chat_id, 'group_id': group_id})['items']
 
-### HANDLERS FOR DIRECT ###
-
+### Обработчики событий из лички
 async def start(user_id, value='Привет, Я Пончо, твой пушистый помошник, своими лапами ищу расписания групп🐈'):
     await db_methods.insert_user(user_id)
     await write_msg(user_id, value + '\nДля начала, давай определимся с твоей формой обучения:', form_keyboard)
@@ -110,7 +109,7 @@ async def push_button(user_id, msg):
     else:
         await write_msg(user_id, 'Если это команда, то я ее не понял😿')
 
-### HANDLERS FOR CHAT ###
+###Обработчики сообщений из чата
 
 async def help(chat_id):
     await write_chat_msg(chat_id, helper)
@@ -147,7 +146,9 @@ async def roulette(chat_id, user_id):
             await kick_user(chat_id, user_id)
     except:
         await write_chat_msg(chat_id, f'@id{user_id} (Админ), это шутка, я никогда бы не выстрелил в кормильца :3')
-        
+
+### Работа с инфой чата
+
 async def refresh_chats_info(chat_id, user_id, msg):
     score = await methods.toxicity_handler(msg)
 
@@ -189,14 +190,15 @@ async def set_chat_limit(chat_id, user_id, words):
 async def get_chat_info(chat_id):
     if await db_methods.is_existed_chat(chat_id):
         result = ''
+        number = 1
         current_chat = await db_methods.get_score_info(chat_id)
 
         for user in current_chat:
             user_id = str(user[0])
-            score = str(round(user[1], 3))
-            result += f'@id{user_id}, значение токсичности: {score}\n'
+            result += f'👲🏽 @id{user_id} (Быдло №{number})\n'
+            number += 1
         if result != '':
-            await write_chat_msg(chat_id, '❗РЕЙТИНГ ТОКСИЧНОСТИ В ЭТОМ ЧАТЕ❗\n\nБыдло #1: ' + result)
+            await write_chat_msg(chat_id, '❗РЕЙТИНГ ТОКСИЧНОСТИ В ЭТОМ ЧАТЕ❗\n\n' + result)
         else:
             await write_chat_msg(chat_id,  'В чате нет токсиков 👍')
     else:
@@ -209,10 +211,12 @@ async def check_chat_limit(chat_id, user_id):
             await kick_user(chat_id, user_id)
             await write_chat_msg(chat_id, 'ОСУЖДАЮ')
 
+### Работа с парсерами
+
 async def horoscope(chat_id, words):
     try:
         if words[1] in zodiac_signs:
-            photo = upload.photo_messages('Your files path')
+            photo = upload.photo_messages('Your path to the file')
             attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
             if len(words) > 2:
                 await send_picture(chat_id, await methods.get_horoscope(words[1], words[2]), attachment)

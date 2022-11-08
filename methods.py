@@ -15,7 +15,6 @@ async def toxicity_handler(msg):
             try:
                 labels = await response.json()
                 
-                ### Normalizing the neural network prediction
                 if labels[0][0]['label'] == 'LABEL_1':
                     return labels[0][0]['score'] - labels[0][1]['score'] * random.random()
                 else:
@@ -54,8 +53,7 @@ async def is_group(user_id, group):
             else:
                 await db_methods.insert_link(user_id, schedule_link + '_word_blank?' + items.find_next('a').get('href')[22:])
                 return True
-            
-### Get a link to the schedule of the group, if it exists
+
 async def get_schedule(words):
     try:
         if int(words[1]) not in range(1,8):
@@ -63,6 +61,7 @@ async def get_schedule(words):
     except:
         return "Курс это не буквы☝"
 
+    ###Тянем ссылку на расписание группы
     async with ClientSession() as session:
         async with session.get(schedule_link + "_groups?i=0&f=0&k=" + words[1], headers=HEADERS) as response:
             soup = BeautifulSoup(await response.text(), 'html.parser')
@@ -79,7 +78,7 @@ async def get_schedule(words):
                 else:
                     return await parse_schedule(filename, file_link)
 
-### Parsing the schedule from the link
+    ###Тянем само расписание 
 async def parse_schedule(filename, file_link, value="неделя"):
     urllib.request.urlretrieve(file_link, filename)
     doc = docx.Document(filename)
@@ -111,7 +110,10 @@ async def parse_schedule(filename, file_link, value="неделя"):
                 string += ' ' + cell.text
             
             if day_marker:
-                result += '\n' + string
+                if string[-1] == ')':
+                    string += '\n'
+                else:
+                    result += '\n' + string
             else:
                 continue
    

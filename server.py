@@ -1,28 +1,28 @@
 import logging
 import asyncio
+import threading
 import db_methods
 import handlers
 from vk_api.bot_longpoll import VkBotEventType
 from config import bot_id, forms, commands
 
-### Logger config
 logging.basicConfig(level=logging.INFO, filename='logs\server.log')
 log = logging.getLogger('SERVER.PY')
 
-### Loop
+### Вхождение в луп
 async def main():
     for event in handlers.longpoll.listen():
         try:
-            await asyncio.gather(event_handle(event))
+            await event_handle(event)
         except:
             logging.critical('SERVER ERROR: breaks in the program logic')
 
-### Acceptance and redirection of events
+### Основная логика тут, в том числе обработка ивентов
 async def event_handle(event):
     try:
         if event.type == VkBotEventType.MESSAGE_NEW:
 
-            ### Commonly used parameters
+            ### Часто использующиеся параметры
             msg = event.message.get('text').lower()
             words = msg.split()
             user_id = event.message.get('from_id')  
@@ -70,11 +70,10 @@ async def event_handle(event):
                 if words[0] == '/расписание':
                     await handlers.schedule(chat_id, words)
 
-                ### Updating chat toxicity parameters
+                ### Обновлеям токсичность чата
                 if words[0] not in commands:
                     await handlers.refresh_chats_info(chat_id, user_id, msg)
-                
-                ### Checking the user for a toxicity limit in chat (if any)
+
                 if await db_methods.is_chat_have_limit(chat_id):
                     try:
                         await handlers.check_chat_limit(chat_id, user_id)
@@ -106,5 +105,5 @@ async def event_handle(event):
     except:
         log.warning(f'\nHANDLE ERROR: undefiend event from chat or direct\n')
         
-
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())

@@ -63,7 +63,7 @@ async def insert_chats_limit(chat_id, value):
     db.commit()
 
 async def update_chats_limit(chat_id, value):
-    cursor.execute('UPDATE chats SET chats_limit=? WHERE user_id=?;', (value, chat_id))
+    cursor.execute('UPDATE chats SET chats_limit=? WHERE chat_id=?;', (value, chat_id))
     db.commit()
 
 ### READ

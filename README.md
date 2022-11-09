@@ -22,9 +22,15 @@ cat config.py
 ### 3) Configurate your config file
 
 ```python
-import sqlite 
+import sqlite3
 
 # You can use another one, but then maybe you need to change the queries and methods of working with the DB
+
+db = sqlite3.connect('name_db.db')
+cursor = db.cursor()
+# ...............................|
+# Some execute for create tables |
+#................................|
 
 group_id = 'Your group ID, integer'
 bot_id = 'Your bot ID, integer'
@@ -43,4 +49,4 @@ make run
 ```
 ---
 # **Done!**
-##### **P.S. Well, if you do not want to bother with setting up your own bot, you can try its functionality by writing in person or by inviting to the [conversation VK](https://vk.com/ponchomeowbot)**
+##### **P.S. Well, if you do not want to bother with setting up your own bot, you can try its functionality by writing in person or by inviting to the ![conversation VK](https://vk.com/ponchomeowbot)**

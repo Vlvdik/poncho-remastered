@@ -126,17 +126,6 @@ async def leave_user(chat_id, member_id):
 async def kick(chat_id, user_id, member_id):
     await write_chat_msg(chat_id, f"@id{user_id} (Кэп) отправил в далекое плавание @id{member_id} (этого морячка)\nPress F😿")
 
-async def bibametr(chat_id, user_id):
-    res = random.randint(-100,100)
-    smile = ''
-
-    if res >= 30:
-        smile = '🙀'
-    else:
-        smile = '😿'
-
-    await write_chat_msg(chat_id, f'@id{user_id} (Чел), биба {res} см {smile}')
-
 async def roulette(chat_id, user_id):
     try:
         if random.randint(0,5):
@@ -216,7 +205,7 @@ async def check_chat_limit(chat_id, user_id):
 async def horoscope(chat_id, words):
     try:
         if words[1] in zodiac_signs:
-            photo = upload.photo_messages('Your path to the file')
+            photo = upload.photo_messages('Ваш путь к файлу')
             attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
             if len(words) > 2:
                 await send_picture(chat_id, await methods.get_horoscope(words[1], words[2]), attachment)

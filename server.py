@@ -1,6 +1,5 @@
 import logging
 import asyncio
-import threading
 import db_methods
 import handlers
 from vk_api.bot_longpoll import VkBotEventType
@@ -11,11 +10,13 @@ log = logging.getLogger('SERVER.PY')
 
 ### Вхождение в луп
 async def main():
+    tasks = []
     for event in handlers.longpoll.listen():
         try:
-            await event_handle(event)
-        except:
-            logging.critical('SERVER ERROR: breaks in the program logic')
+            tasks.append(asyncio.create_task(event_handle(event)))
+            await asyncio.gather(*tasks)
+        except Exception as ex:
+            logging.critical(f'SERVER ERROR: {ex}')
 
 ### Основная логика тут, в том числе обработка ивентов
 async def event_handle(event):
@@ -102,8 +103,8 @@ async def event_handle(event):
                 else:    
                     log.info(f'\nKICK USER: {member_id} (CHAT: {chat_id})\n')
                     await handlers.kick(chat_id, user_id, member_id)
-    except:
-        log.warning(f'\nHANDLE ERROR: undefiend event from chat or direct\n')
+    except Exception as ex:
+        log.warning(f'\nHANDLE ERROR: {ex}\n')
         
 if __name__ == "__main__":
     asyncio.run(main())

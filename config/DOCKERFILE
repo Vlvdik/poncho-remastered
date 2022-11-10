@@ -1,0 +1,8 @@
+FROM ubuntu:latest
+
+LABEL Author="github.com/Vlvdik"
+
+RUN make run
+
+COPY . /github.com/Vlvdik/poncho-remastered/
+WORKDIR /github.com/Vlvdik/poncho-remastered/

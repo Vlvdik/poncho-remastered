@@ -1,6 +1,6 @@
 FROM ubuntu:latest
 
-LABEL Author="github.com/Vlvdik"
+LABEL Author="https://github.com/Vlvdik"
 
 RUN make run
 

@@ -1,4 +1,4 @@
 .PHONY: run
 
 run:  
-	python -m pip install -r requirements.txt; python server.py
+	apt-get update; apt-get install -y python3; python -m pip install -r requirements.txt; python server.py

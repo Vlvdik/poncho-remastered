@@ -126,6 +126,17 @@ async def leave_user(chat_id, member_id):
 async def kick(chat_id, user_id, member_id):
     await write_chat_msg(chat_id, f"@id{user_id} (Кэп) отправил в далекое плавание @id{member_id} (этого морячка)\nPress F😿")
 
+async def bibametr(chat_id, user_id):
+    res = random.randint(-100,100)
+    smile = ''
+
+    if res >= 30:
+        smile = '🙀'
+    else:
+        smile = '😿'
+
+    await write_chat_msg(chat_id, f'@id{user_id} (Чел), биба {res} см {smile}')
+
 async def roulette(chat_id, user_id):
     try:
         if random.randint(0,5):
@@ -158,21 +169,25 @@ async def set_chat_limit(chat_id, user_id, words):
                 if user['member_id'] == user_id:
                     try:
                         if user['is_admin']: 
-                            if float(words[1]) == 0.0:
-                                await db_methods.delete_chats_limit(chat_id)
-                                await write_chat_msg(chat_id, 'Лимит убран 👌🏻')
-                                break
-                            else:
-                                if await db_methods.is_chat_have_limit(chat_id):
-                                    await db_methods.update_chats_limit(chat_id, float(words[1]))
+                            try:
+                                if float(words[1]) == 0.0:
+                                    await db_methods.delete_chats_limit(chat_id)
+                                    await write_chat_msg(chat_id, 'Лимит убран 👌🏻')
+                                    break
                                 else:
-                                    await db_methods.insert_chats_limit(chat_id, float(words[1])) 
-                                await write_chat_msg(chat_id, 'Задано 👌🏻')
-                                break
+                                    if await db_methods.is_chat_have_limit(chat_id):
+                                        await db_methods.update_chats_limit(chat_id, float(words[1]))
+                                    else:
+                                        await db_methods.insert_chats_limit(chat_id, float(words[1])) 
+                                    await write_chat_msg(chat_id, 'Задано 👌🏻')
+                                    break
+                            except:
+                                await write_chat_msg(chat_id, 'Задан неккоректный лимит 👺')
+
                     except:
                         await write_chat_msg(chat_id, 'Лимит могут задавать только администраторы беседы 👺')
         except:
-            await write_chat_msg(chat_id, 'Задан неккоректный лимит 👺')
+            await write_chat_msg(chat_id, 'Некорректная работа операции...')
     else:
         await write_chat_msg(chat_id, 'Укажите значение лимита 👺')
 
@@ -205,7 +220,7 @@ async def check_chat_limit(chat_id, user_id):
 async def horoscope(chat_id, words):
     try:
         if words[1] in zodiac_signs:
-            photo = upload.photo_messages('Ваш путь к файлу')
+            photo = upload.photo_messages('uploads/Кот_' + words[1] + '.jpg')
             attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
             if len(words) > 2:
                 await send_picture(chat_id, await methods.get_horoscope(words[1], words[2]), attachment)

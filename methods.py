@@ -70,93 +70,94 @@ async def get_schedule(words):
             if items == None:
                 return 'Группа не найдена/не существует 😢'
             else:
-                file_link = schedule_link + '_word_blank?' + items.find_next('a').get('href')[22:]
-                filename = 'Schedule_' + words[2].upper() + '.docx'
-
+                group = items.find_next('a').get('href')[22:]
+                url = schedule_link + '_groups?' + group
+                file_link = schedule_link + '_word_blank?' + group
+                
                 if len(words) > 3:
-                    return await parse_schedule(filename, file_link, words[3])
+                    return await parse_schedule(url, file_link, words[3])
                 else:
-                    return await parse_schedule(filename, file_link)
+                    return await parse_schedule(url, file_link)
 
-    ###Тянем само расписание 
-async def parse_schedule(filename, file_link, value="неделя"):
-    urllib.request.urlretrieve(file_link, filename)
-    doc = docx.Document(filename)
-    table = doc.tables[0]
-    remote_marker = False
-    result = ''
-    last_string = ''
+async def parse_schedule(url, file_link, value='Неделя'):
+    async with ClientSession() as session:
+        async with session.get(url, headers=HEADERS) as response:
+            soup = BeautifulSoup(await response.text(), 'html.parser')
+            tables = soup.find_all('tbody')
+            days = soup.find_all('h2')[2:]
+            result = ''
+            day = 0
 
-    if value in day_of_weeks:
-        day_marker = False
-        
-        for row in table.rows[5:]:
-            string = ''
-            if len(row.cells[0].text.split()) > 0:
-                if row.cells[0].text.split()[0].lower() == value:
-                    day_marker = True   
-                elif row.cells[0].text.split()[0].lower() in day_of_weeks:
-                    day_marker = False
+            if value in day_of_weeks:
+                for i in tables:
+                    try:      
+                        string = '' 
+                        
+                        if days[day].text.split()[0].lower() == value:
+                            string += days[day].text + '✅' 
 
-            for cell in row.cells:
-                if ' ' + cell.text == string:
-                    string += '✅'
-                    break
-                if len(cell.text.split()) > 0 and cell.text.split()[0] == 'Дистанционная' and day_marker:
-                    remote_marker = True
-                elif cell.text.isnumeric() and float(cell.text) < 9:
-                    string = cell.text + ')'
-                    continue
-                string += ' ' + cell.text
-            
-            if day_marker:
-                if string[-1] == ')':
-                    string += '\n'
-                else:
-                    result += '\n' + string
+                            for j in i.find_all('tr'):
+                                    if len(list(filter(None, ''.join(str(j).split('\n<td>')[1:]).split('</td>')))) > 3:
+                                        for res in j:
+                                            if res.text.isnumeric():
+                                                if int(res.text) in range (1,9):
+                                                    continue
+                                                else:
+                                                    pass
+                                            if len(str(res).split('<hr/>')) > 1:
+                                                if res.hr.previous_sibling.name == 'strong':
+                                                    string += res.hr.previous_sibling.previous_sibling.text + ' / ' + res.hr.next_sibling.text
+                                                else:
+                                                    if res.hr.previous_sibling.name == 'a':
+                                                        string += res.hr.previous_sibling.text + ' / ' + res.hr.next_sibling.next_sibling.text
+                                                    else:
+                                                        string += res.hr.previous_sibling.text + ' / ' + res.hr.next_sibling.text  
+                                            else:
+                                                string += res.text  
+                                        if j.find('a'):
+                                            string = string[:-1] + '📲 Место проведения: ' + ''.join(str(j.find('a').get('href')).split(' ')) + '\n'
+                            if string[:-1] == days[day].text:
+                                string = string[:-1] + '❌'  
+                        else:
+                            continue
+                    except:
+                        continue
+                    finally:              
+                        result += '\n' + string
+                        day += 1
             else:
-                continue
-   
-    else:
-        for row in table.rows[5:]:
-            string = ''
+                for i in tables:
+                    try:      
+                        string = '' 
+                        string += days[day].text + '✅' 
 
-            for cell in row.cells:
-                if len(cell.text.split()) > 0 and cell.text.split()[0] == 'Дистанционная':
-                    remote_marker = True
-                elif ' ' + cell.text == string:
-                    break
-                elif cell.text.isnumeric() and float(cell.text) < 9:
-                    string = cell.text + ')'
-                    continue
-                string += ' ' + cell.text
-
-            if string.split()[0].lower() in day_of_weeks:
-                
-                result += '\n'
-                
-                try:
-                    string += '✅'
-
-                    if last_string[:-1] in day_of_weeks or last_string in day_of_weeks:
-                        result = result[:-2]
-                        result += '❌\n'
-                    if string.split()[0].lower()[:-1] == "воскресенье":
-                        string = string[:-1]
-                        string += '❌'
-                except:
-                    continue
-
-            if string != '':
-                last_string = string.split()[0].lower()
-            result += '\n' + string 
-
-    await aiofiles.os.remove(filename)
-    
-    if result.lower()[2:-1] == value or result[-2] == ')':
-        result = result[:-1] + '❌'
-    
-    if remote_marker:
-        result += '\n\n🌐Ссылка для просмотра удаленки: ' + remote_link
-    
-    return result + '\n\n💾Ссылка на файл с расписанием на неделю: ' + file_link
+                        for j in i.find_all('tr'):
+                                if len(list(filter(None, ''.join(str(j).split('\n<td>')[1:]).split('</td>')))) > 3:
+                                    for res in j:
+                                        if res.text.isnumeric():
+                                            if int(res.text) in range (1,9):
+                                                continue
+                                            else:
+                                                pass
+                                        if len(str(res).split('<hr/>')) > 1:
+                                            if res.hr.previous_sibling.name == 'strong':
+                                                string += res.hr.previous_sibling.previous_sibling.text + ' / ' + res.hr.next_sibling.text
+                                            else:
+                                                if res.hr.previous_sibling.name == 'a':
+                                                    string += res.hr.previous_sibling.text + ' / ' + res.hr.next_sibling.next_sibling.text
+                                                else:
+                                                    string += res.hr.previous_sibling.text + ' / ' + res.hr.next_sibling.text  
+                                        else:
+                                            string += res.text  
+                                    if j.find('a'):
+                                        string = string[:-1] + '📲 Место проведения: ' + ''.join(str(j.find('a').get('href')).split(' ')) + '\n'
+                    except:
+                        continue
+                    finally:
+                        if string[:-1] == days[day].text:
+                            string = string[:-1] + '❌'
+                    
+                        result += '\n' + string
+                        day += 1
+            
+    return result + '\n\n💾 Ссылка на файл с расписанием недели: ' + file_link

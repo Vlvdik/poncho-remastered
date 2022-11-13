@@ -95,17 +95,23 @@ async def back(user_id):
 
 async def push_button(user_id, msg):
     if msg in day_of_weeks:
-        await write_msg(user_id, await methods.parse_schedule(await db_methods.get_user_group(user_id), await db_methods.get_user_link(user_id), msg), days_keyboard)
+        group = await db_methods.get_user_link(user_id)
+
+        await write_msg(user_id, await methods.parse_schedule('https://ies.unitech-mo.ru/schedule_list_groups?' + group[51:], await db_methods.get_user_link(user_id), msg), days_keyboard)
     elif msg  == 'сменить группу':
         await back(user_id)
     elif msg  == 'неделя':
-        await write_msg(user_id, await methods.parse_schedule(await db_methods.get_user_group(user_id), await db_methods.get_user_link(user_id)))
+        group = await db_methods.get_user_link(user_id)
+
+        await write_msg(user_id, await methods.parse_schedule('https://ies.unitech-mo.ru/schedule_list_groups?' + group[51:], await db_methods.get_user_link(user_id)))
     elif msg  == 'день':
         await write_msg(user_id, 'Хорошо, теперь ты можешь выбрать конкретный день. \nP.S. Обрати внимание, что расписание выдается на ТЕКУЩУЮ неделю ❗', days_keyboard) 
     elif msg == 'выбор расписания':
         await write_msg(user_id, '👌🏻', schedule_keyboard)
     elif msg  == 'сегодня':
-        await write_msg(user_id, await methods.parse_schedule(await db_methods.get_user_group(user_id), await db_methods.get_user_link(user_id), day_of_weeks[datetime.now().weekday()]))
+        group = await db_methods.get_user_link(user_id)
+
+        await write_msg(user_id, await methods.parse_schedule('https://ies.unitech-mo.ru/schedule_list_groups?' + group[51:], await db_methods.get_user_link(user_id), day_of_weeks[datetime.now().weekday()]))
     else:
         await write_msg(user_id, 'Если это команда, то я ее не понял😿')
 
@@ -220,7 +226,7 @@ async def check_chat_limit(chat_id, user_id):
 async def horoscope(chat_id, words):
     try:
         if words[1] in zodiac_signs:
-            photo = upload.photo_messages('uploads/Кот_' + words[1] + '.jpg')
+            photo = upload.photo_messages('Your path to img')
             attachment = "photo" + str(photo[0]['owner_id']) + "_" + str(photo[0]['id']) + "_" + str(photo[0]['access_key'])
             if len(words) > 2:
                 await send_picture(chat_id, await methods.get_horoscope(words[1], words[2]), attachment)

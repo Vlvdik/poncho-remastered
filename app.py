@@ -8,7 +8,6 @@ from config import bot_id, forms, commands
 logging.basicConfig(level=logging.INFO, filename='logs\server.log')
 log = logging.getLogger('SERVER.PY')
 
-### Вхождение в луп
 async def main():
     tasks = []
     for event in handlers.longpoll.listen():
@@ -18,7 +17,6 @@ async def main():
         except Exception as ex:
             logging.critical(f'SERVER ERROR: {ex}')
 
-### Основная логика тут, в том числе обработка ивентов
 async def event_handle(event):
     try:
         if event.type == VkBotEventType.MESSAGE_NEW:
